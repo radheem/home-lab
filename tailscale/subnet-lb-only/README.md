@@ -22,7 +22,7 @@ This means that only services that acquire an IP address from the MetalLB pool (
     ```
 
 3.  **IMPORTANT: Approve the Routes:**
-    - Go to your Tailscale/Headscale Admin Console and find the new machine (the hostname is dynamically generated based on your `CLUSTER_NAME`, e.g., `qube-genai-ts-router`).
+    - Go to your Tailscale/Headscale Admin Console and find the new machine (the hostname is dynamically generated based on your `CLUSTER_NAME`, e.g., `genai-ts-router`).
     - Select `Edit route settings...` and **approve** the advertised route, which will be the value of `TS_ROUTES` from your `.env` file.
 
 ## Verification

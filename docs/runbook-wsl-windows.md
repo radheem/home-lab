@@ -14,7 +14,7 @@ Two WSL specifics:
 - **The WSL host needs a route to the LB pool** (the same "host caveat" from
   runbook-local — WSL has no bridged LAN NIC). Add it once per WSL session:
   ```bash
-  CLUSTER=qube-$(. ./.env >/dev/null 2>&1; echo $LOCAL_HOST)
+  CLUSTER=$(. ./.env >/dev/null 2>&1; echo $LOCAL_HOST)
   BR=br-$(docker network ls --filter name=k3d-$CLUSTER --format '{{.ID}}')
   sudo ip route add 172.28.210.0/24 dev "$BR"        # = LB_CIDR from .env
   # verify: curl -s -o /dev/null -w '%{http_code}\n' --resolve whoami.home.lan:80:172.28.210.80 http://whoami.home.lan  -> 200

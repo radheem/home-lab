@@ -46,7 +46,7 @@ cannot approve it (it returns 401 against the API — see Exp 02/03). Pick one:
 **A. Remotely via the API (no control-plane host access)** — needs `HEADSCALE_API_KEY`:
 ```bash
 set -a; source .env; set +a
-bash tailscale/approve-route.sh           # enables LB_CIDR for qube-<host>-ts-router
+bash tailscale/approve-route.sh           # enables LB_CIDR for <host>-ts-router
 ```
 
 **B. On the control host (if you have access):**

@@ -49,7 +49,7 @@ Then point your LAN at the DNS (one of):
 
 Verify:
 ```bash
-export KUBECONFIG=$PWD/kubeconfig-qube-genai.yaml
+export KUBECONFIG=$PWD/kubeconfig-homelab.yaml
 dig @172.28.240.53 whoami.home.lan +short     # -> 172.28.240.80
 curl -H 'Host: whoami.home.lan' http://172.28.240.80
 ```

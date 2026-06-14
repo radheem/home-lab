@@ -12,7 +12,7 @@ Because both pinned IPs live inside the advertised pool, a tailnet client can:
 ## Environment (from `.env`)
 | Key | Value |
 |-----|-------|
-| Cluster | `qube-homelab` |
+| Cluster | `homelab` |
 | Authoritative DNS (LB IP) | `172.28.210.53` |
 | Shared Gateway (LB IP) | `172.28.210.80` |
 | Advertised route (`TS_ROUTES`) | `172.28.210.0/24` |
@@ -35,13 +35,13 @@ cd /home/radr/pers/k3d-lab
 
 # If the cluster is already up from Exp 01, just add the router:
 bash tailscale/manage.sh install \
-  --cluster-name qube-homelab \
+  --cluster-name homelab \
   --authkey "$TS_AUTHKEY" --login-server "$TS_LOGIN_SERVER" \
   --routes 172.28.210.0/24
 # (or from scratch: ./install.sh --with-router)
 
 # confirm the router registered
-bash tailscale/manage.sh status --cluster-name qube-homelab
+bash tailscale/manage.sh status --cluster-name homelab
 
 # >>> PAUSE: approve the 172.28.210.0/24 route in Headscale admin <<<
 

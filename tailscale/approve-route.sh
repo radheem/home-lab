@@ -10,7 +10,7 @@
 #   HEADSCALE_API_KEY   admin Bearer token  (NOT the node auth key)
 #   HEADSCALE_URL       e.g. https://abc.yourcompany.com  (falls back to TS_LOGIN_SERVER)
 #   CIDR                route to approve    (arg 1, else TS_ROUTES, else LB_CIDR)
-#   NODE_NAME           router hostname     (arg 2, else qube-${LOCAL_HOST}-ts-router)
+#   NODE_NAME           router hostname     (arg 2, else ${CLUSTER_NAME}-ts-router)
 ###############################################################################
 set -euo pipefail
 
@@ -18,7 +18,7 @@ API_KEY="${HEADSCALE_API_KEY:?set HEADSCALE_API_KEY (a Headscale API key, not th
 URL="${HEADSCALE_URL:-${TS_LOGIN_SERVER:?set HEADSCALE_URL or TS_LOGIN_SERVER}}"
 URL="${URL%/}"
 CIDR="${1:-${TS_ROUTES:-${LB_CIDR:?set CIDR / TS_ROUTES / LB_CIDR}}}"
-NODE="${2:-qube-${LOCAL_HOST:?set LOCAL_HOST or pass NODE_NAME}-ts-router}"
+NODE="${2:-${CLUSTER_NAME:-${LOCAL_HOST:?set CLUSTER_NAME/LOCAL_HOST or pass NODE_NAME}}-ts-router}"
 command -v jq >/dev/null || { echo "jq required"; exit 1; }
 
 auth=(-H "Authorization: Bearer ${API_KEY}")
