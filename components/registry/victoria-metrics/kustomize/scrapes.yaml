@@ -1,0 +1,49 @@
+# Scrape configs so VMAgent (selectAllByDefault) pulls metrics into VictoriaMetrics.
+# Targets live in kube-system / monitoring; namespaceSelector points there.
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: cilium-agent
+spec:
+  namespaceSelector: { matchNames: [kube-system] }
+  selector:
+    matchLabels:
+      k8s-app: cilium
+  podMetricsEndpoints:
+    - port: prometheus          # cilium-agent :9962
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMPodScrape
+metadata:
+  name: cilium-operator
+spec:
+  namespaceSelector: { matchNames: [kube-system] }
+  selector:
+    matchLabels:
+      io.cilium/app: operator
+  podMetricsEndpoints:
+    - port: prometheus          # cilium-operator :9963
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: hubble-metrics
+spec:
+  namespaceSelector: { matchNames: [kube-system] }
+  selector:
+    matchLabels:
+      k8s-app: hubble
+  endpoints:
+    - port: hubble-metrics      # hubble :9965
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: node-exporter
+spec:
+  namespaceSelector: { matchNames: [monitoring] }
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus-node-exporter
+  endpoints:
+    - port: metrics             # node-exporter :9100

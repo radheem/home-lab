@@ -4,3 +4,4 @@ namespace: monitoring
 resources:
   - vmstack.yaml
   - logs-traces.yaml
+  - scrapes.yaml
