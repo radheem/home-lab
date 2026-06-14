@@ -10,3 +10,22 @@ helmCharts:
     valuesFile: values.yaml
 resources:
   - httproute.yaml
+
+# Prebuilt dashboards -> ConfigMaps the Grafana sidecar auto-imports
+# (label grafana_dashboard=1; sidecar searchNamespace=ALL). Datasource refs in
+# the JSON are pre-bound to the VictoriaMetrics datasource (uid victoriametrics).
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    grafana_dashboard: "1"
+configMapGenerator:
+  - name: dashboard-node-exporter
+    files: [dashboards/node-exporter-full.json]
+  - name: dashboard-cilium
+    files: [dashboards/cilium.json]
+  - name: dashboard-cilium-operator
+    files: [dashboards/cilium-operator.json]
+  - name: dashboard-hubble
+    files: [dashboards/hubble.json]
+  - name: dashboard-hubble-l7
+    files: [dashboards/hubble-l7-http.json]
