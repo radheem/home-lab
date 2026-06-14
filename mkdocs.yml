@@ -1,0 +1,91 @@
+site_name: k3d-lab
+site_description: Declarative home-lab Kubernetes (k3d + Cilium) with zero-touch LAN DNS
+site_author: Radheem Bin Razi
+site_url: https://radheem.github.io/home-lab/
+
+repo_name: radheem/home-lab
+repo_url: https://github.com/radheem/home-lab
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: DM Sans
+    code: JetBrains Mono
+  features:
+    - navigation.tracking
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - content.action.edit
+    - search.suggest
+    - search.highlight
+    - toc.follow
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: teal
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+
+extra_css:
+  - stylesheets/extra.css
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+plugins:
+  - search
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/radheem/home-lab
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Gallery: gallery.md
+  - Runbooks:
+      - Deploy locally: runbooks/deploy-local.md
+      - Deploy components: runbooks/deploy-components.md
+      - Add components (day-2): runbooks/add-components.md
+      - Tailscale access: runbooks/tailscale-access.md
+      - WSL → browse from Windows: runbooks/wsl-windows.md
+  - Reference:
+      - TLS / cert-manager: cert-manager.md
+      - Troubleshooting: troubleshooting.md
+      - Tailscale local access (template): misc/templ-tailscale-local-access.md

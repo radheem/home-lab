@@ -5,6 +5,12 @@ feature is **zero-touch DNS**: deploy an app with an `HTTPRoute` carrying a
 `*.home.lan` hostname and it becomes reachable by name from the LAN — no manual DNS,
 no per-app config. This document explains how the pieces fit together.
 
+<figure markdown>
+  ![Every component Ready across namespaces in one k3d cluster](artifacts/home-lab.png){ loading=lazy }
+  <figcaption>What it looks like running — the platform plus the full component stack
+  in a single k3d cluster. More in the <a href="../gallery/">gallery</a>.</figcaption>
+</figure>
+
 > Values below use the `.env.example` defaults: TLD `home.lan`, LB pool
 > `172.28.210.0/24`, authoritative DNS `172.28.210.53`, shared Gateway
 > `172.28.210.80`, pod CIDR `10.42.0.0/16`, service CIDR `10.43.0.0/16`.
@@ -78,7 +84,7 @@ flowchart LR
   ExternalDNS) and forwards anything else to public upstreams. Exposed to the LAN on
   a pinned Cilium LoadBalancer IP `172.28.210.53` as a **DaemonSet** with
   `externalTrafficPolicy: Local` (so the node holding the L2 lease always has a local
-  backend — see [experiment 01](../experiments/01-no-tailscale/) bug #5).
+  backend — see [experiment 01](https://github.com/radheem/home-lab/tree/main/experiments/01-no-tailscale) bug #5).
 
 ## 3. Zero-touch publish flow
 
@@ -103,7 +109,7 @@ sequenceDiagram
 
 ExternalDNS uses `--source=gateway-httproute` and `--provider=coredns`, talking to
 etcd at a pinned ClusterIP **by IP** (`10.43.0.20`) to avoid a gRPC-resolver issue
-with k8s hostnames ([experiment 01](../experiments/01-no-tailscale/) bug #4).
+with k8s hostnames ([experiment 01](https://github.com/radheem/home-lab/tree/main/experiments/01-no-tailscale) bug #4).
 
 ## 4. End-to-end request path
 
@@ -185,7 +191,7 @@ host directory (`CLUSTER_VOLUME_STORE`), so data persists on the device.
 A subnet router advertises the LB pool to a Headscale tailnet, so the same LB IPs are
 reachable remotely. The advertised route must be approved (see
 [tailscale-access.md](runbooks/tailscale-access.md) and
-[experiment 03](../experiments/03-remote-route-approval/)).
+[experiment 03](https://github.com/radheem/home-lab/tree/main/experiments/03-remote-route-approval)).
 
 ```mermaid
 flowchart LR
@@ -220,4 +226,4 @@ flowchart LR
 - **Internal CA for TLS** because public ACME can't issue for a local-only TLD.
 
 All of these were validated (and several discovered) in the
-[experiments](../experiments/).
+[experiments](https://github.com/radheem/home-lab/tree/main/experiments).

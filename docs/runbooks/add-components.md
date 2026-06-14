@@ -11,7 +11,7 @@ work is applied.
 ## 0. Prerequisites
 - A running, verified cluster (`./install.sh` done).
 - Tools — tested versions: `kubectl v1.31.0 · helm v3.18.2 · yq (Python jq-wrapper) ·
-  envsubst (gettext 0.21)`. Full matrix: [README Prerequisites](../../README.md#prerequisites).
+  envsubst (gettext 0.21)`. Full matrix: [README Prerequisites](https://github.com/radheem/home-lab/blob/main/README.md#prerequisites).
 - `components.sh` auto-targets the repo-local `kubeconfig-<CLUSTER_NAME>.yaml`
   (it overrides any ambient `KUBECONFIG`).
 

@@ -33,7 +33,7 @@ auto-pulls its dependencies.
   `components/registry/<name>/component.yaml` (node-exporter 4.43.0, victoria-metrics-operator
   0.59.2, opentelemetry-operator 0.107.0, grafana 10.5.15, nats 2.12.4, hatchet-stack 0.10.5,
   cloudnative-pg 0.27.1, ferretdb 2.7.0) — full matrix in the
-  [README Prerequisites](../../README.md#prerequisites).
+  [README Prerequisites](https://github.com/radheem/home-lab/blob/main/README.md#prerequisites).
 - The imported source lives in the gitignored `temp-artifacts/`; the committed,
   adapted versions are in `components/registry/`.
 

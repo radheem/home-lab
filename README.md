@@ -1,5 +1,7 @@
 # k3d-lab — declarative home-lab k8s with zero-touch LAN DNS
 
+📖 **Docs site:** <https://radheem.github.io/home-lab/> (architecture, runbooks, gallery)
+
 A clean, declarative k3d setup. Deploy an app, attach an `HTTPRoute` with a
 `*.home.lan` hostname, and it becomes reachable by name from any device on your
 Wi-Fi — **no manual DNS edits**. DNS records are published automatically by

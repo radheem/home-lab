@@ -142,7 +142,7 @@ kubectl -n kube-system port-forward svc/hubble-ui 12000:80
   `COMP_*` vars aren't exported, so e.g. `.spec.instances: expected numeric ... got string`.
   Install the jq-wrapper: `sudo apt-get install -y yq jq` (Debian/Ubuntu; avoids the
   PEP 668 pip error), or `pipx install yq`. If a mikefarah `yq` still wins on `PATH`
-  (`which -a yq`), rename/remove it. See [README Prerequisites](../README.md#prerequisites),
+  (`which -a yq`), rename/remove it. See [README Prerequisites](https://github.com/radheem/home-lab/blob/main/README.md#prerequisites),
   then re-run `./components.sh deploy`.
 
 **`components.sh` targets the wrong cluster**

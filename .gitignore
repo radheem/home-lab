@@ -10,6 +10,10 @@ home-lab-ca.crt
 .render-*
 # Runtime logs
 logs/
+# MkDocs build output / local Python venv
+site/
+.venv/
+__pycache__/
 # Imported external stack — source only, never commit
 temp-artifacts/
 # Component selection + secrets (live files; commit the .example instead)

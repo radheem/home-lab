@@ -1,0 +1,26 @@
+/* k3d-lab docs — light polish on top of MkDocs Material */
+
+/* Screenshots: framed, rounded, subtle shadow; captions muted + centered. */
+.md-typeset figure img {
+  border-radius: 6px;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+  max-width: 100%;
+}
+
+.md-typeset figure figcaption {
+  color: var(--md-default-fg-color--light);
+  font-size: 0.8rem;
+  max-width: 46rem;
+  margin: 0.4rem auto 0;
+}
+
+/* Center mermaid diagrams. */
+.md-typeset .mermaid {
+  text-align: center;
+}
+
+/* Slightly tighter tables. */
+.md-typeset table:not([class]) th {
+  font-weight: 600;
+}

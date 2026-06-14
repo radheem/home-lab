@@ -11,7 +11,7 @@ Run the homelab cluster inside **WSL2** and reach its assigned hostnames
   plus **`socat`** and **`tmux`** (`sudo apt-get install -y socat tmux`) for the
   `tools/lb-forward.sh` port forwarders.
 - On **Windows**: a browser, Administrator access (to edit `hosts` + trust the CA).
-- Full version matrix: [README Prerequisites](../../README.md#prerequisites).
+- Full version matrix: [README Prerequisites](https://github.com/radheem/home-lab/blob/main/README.md#prerequisites).
 
 ## 1. Bring up the cluster (in WSL)
 
