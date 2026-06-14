@@ -27,7 +27,13 @@ auto-pulls its dependencies.
   `components.sh` preflight checks cert-manager, the shared Gateway, ExternalDNS
   (with `--source=service`), `local-path`, and the Cilium LB-IPAM pool — and refuses
   to run if any is missing.
-- Tools: `kubectl helm yq envsubst` (`yq` here is the Python jq-wrapper).
+- Tools — tested versions: `kubectl v1.31.0 · helm v3.18.2 · yq (Python jq-wrapper) ·
+  envsubst (gettext 0.21)`. (`yq` here is the jq-wrapper, not mikefarah's Go yq.)
+- Component chart/image versions are pinned per component in
+  `components/registry/<name>/component.yaml` (node-exporter 4.43.0, victoria-metrics-operator
+  0.59.2, opentelemetry-operator 0.107.0, grafana 10.5.15, nats 2.12.4, hatchet-stack 0.10.5,
+  cloudnative-pg 0.27.1, ferretdb 2.7.0) — full matrix in the
+  [README Prerequisites](../README.md#prerequisites).
 - The imported source lives in the gitignored `temp-artifacts/`; the committed,
   adapted versions are in `components/registry/`.
 

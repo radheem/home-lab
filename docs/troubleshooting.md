@@ -8,10 +8,10 @@ kubectl get pods -A
 
 ## DNS resolution
 
-**`dig @172.28.240.53 whoami.home.lan` returns nothing / times out**
+**`dig @172.28.210.53 whoami.home.lan` returns nothing / times out**
 1. Is the LB IP actually assigned and announced?
    ```bash
-   kubectl -n dns-system get svc coredns-auth          # EXTERNAL-IP should be 172.28.240.53
+   kubectl -n dns-system get svc coredns-auth          # EXTERNAL-IP should be 172.28.210.53
    kubectl get ciliumloadbalancerippool,ciliuml2announcementpolicy
    ```
    If `EXTERNAL-IP` is `<pending>`: the IP isn't in `LB_CIDR`, or no pool exists. If it's assigned but unreachable from the LAN, L2/ARP isn't working — confirm the policy `interfaces: ^eth0$` matches the node NIC, and that `LB_CIDR` is on a subnet your LAN can ARP for (bridged, not NAT'd behind the host).
@@ -29,7 +29,7 @@ kubectl get pods -A
    kubectl -n dns-system exec deploy/coredns-auth -- nslookup whoami.home.lan 127.0.0.1
    ```
 
-**External names don't resolve (e.g. `dig @172.28.240.53 example.com` fails)**
+**External names don't resolve (e.g. `dig @172.28.210.53 example.com` fails)**
 - The `.:53` block forwards to `${UPSTREAM_DNS}`. Check egress from the cluster and
   that those resolvers are reachable. Edit `UPSTREAM_DNS` in `.env` and re-apply.
 

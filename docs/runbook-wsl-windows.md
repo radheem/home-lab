@@ -3,6 +3,15 @@
 Run the homelab cluster inside **WSL2** and reach its assigned hostnames
 (`grafana.home.lan`, `hatchet.home.lan`, …) from a **Windows browser**.
 
+## 0. Prerequisites
+- **WSL2** with a Linux distro (Ubuntu 24.04 tested) and **Docker in WSL** (Docker
+  Desktop WSL integration or native `docker`).
+- In WSL — same CLIs/versions as [runbook-local.md](runbook-local.md):
+  `docker 29.4.1 · k3d v5.8.3 · kubectl v1.31.0 · helm v3.18.2 · jq 1.7 · envsubst (gettext 0.21)`
+  plus **`socat`** (`sudo apt-get install -y socat`) for the port forwarders.
+- On **Windows**: a browser, Administrator access (to edit `hosts` + trust the CA).
+- Full version matrix: [README Prerequisites](../README.md#prerequisites).
+
 ## 1. Bring up the cluster (in WSL)
 
 Follow [runbook-local.md](runbook-local.md) **inside your WSL distro** — `./install.sh`,

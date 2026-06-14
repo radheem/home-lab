@@ -9,8 +9,12 @@ Validated end-to-end in [Experiment 01](../experiments/01-no-tailscale/).
 > `LOCAL_TLD=home.lan` — adjust to your `.env`.
 
 ## 1. Prerequisites
-- Tools: `k3d kubectl helm docker jq envsubst` (the installer checks these).
+- Tools (the installer checks these) — tested versions:
+  `docker 29.4.1 · k3d v5.8.3 · kubectl v1.31.0 · helm v3.18.2 · jq 1.7 · envsubst (gettext 0.21)`.
+  `kubectl kustomize` is used, so no standalone `kustomize` is needed.
 - Docker running; ports free; outbound internet (Helm charts, images, Gateway CRDs).
+- OS tested: Ubuntu 24.04 LTS (kernel 6.17). Pinned platform versions (k3s/Cilium/
+  Gateway API/cert-manager) live in `.env` — see the [README Prerequisites](../README.md#prerequisites).
 
 ## 2. Configure `.env`
 ```bash

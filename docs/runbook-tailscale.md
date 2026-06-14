@@ -4,9 +4,17 @@ Make the cluster's LoadBalancer IPs (`LB_CIDR`, incl. the DNS `172.28.210.53` an
 Gateway `172.28.210.80`) reachable from anywhere on your tailnet, by running a
 **subnet router** that advertises `LB_CIDR` to Headscale.
 
-> Prereq: the cluster is already up and verified per [runbook-local.md](runbook-local.md).
 > Partly exercised in [Experiment 02](../experiments/02-with-tailscale/);
 > remote approval designed in [Experiment 03](../experiments/03-remote-route-approval/).
+
+## 0. Prerequisites
+- The cluster is up and verified per [runbook-local.md](runbook-local.md).
+- A reachable **Headscale** control server + a node **pre-auth key** (`TS_AUTHKEY`).
+  Remote route approval (step 3) additionally needs a Headscale **API key**.
+- Tools — tested versions: `kubectl v1.31.0 · helm v3.18.2 · jq 1.7`, plus the
+  `tailscale` CLI on any client used to verify. Base tool matrix:
+  [README Prerequisites](../README.md#prerequisites).
+- A second tailnet machine to verify remote access (`dig`/`curl`).
 
 ## 1. Configure `.env` (Tailscale section)
 ```ini
