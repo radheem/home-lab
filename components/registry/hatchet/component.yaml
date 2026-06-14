@@ -1,0 +1,7 @@
+name: hatchet
+category: workflow
+namespace: workflow
+type: kustomize-helm
+secrets: [HATCHET_ADMIN_PASSWORD]
+waits:
+  - "kubectl -n workflow rollout status deploy/hatchet-stack-api --timeout=300s"

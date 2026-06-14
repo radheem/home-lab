@@ -1,0 +1,34 @@
+# NATS 2.12.4, standalone + JetStream (single-host homelab). Clustering is off:
+# a 1-node cluster never elects a JetStream meta-leader. For real HA, run NATS on
+# a multi-node cluster with config.cluster.enabled=true and replicas>=3.
+config:
+  cluster:
+    enabled: false
+  jetstream:
+    enabled: true
+    fileStore:
+      enabled: true
+      dir: /data
+      pvc:
+        enabled: true
+        size: ${COMP_STORAGESIZE}
+        storageClassName: local-path
+
+container:
+  image:
+    repository: nats
+    tag: 2.12.4-alpine
+  merge:
+    startupProbe:
+      initialDelaySeconds: 60
+      failureThreshold: 30
+
+# Client port (4222) on a LoadBalancer; published to DNS by the homelab ExternalDNS.
+service:
+  enabled: true
+  merge:
+    metadata:
+      annotations:
+        external-dns.alpha.kubernetes.io/hostname: ${COMP_HOSTNAME}.${DOMAIN}
+    spec:
+      type: LoadBalancer

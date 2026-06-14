@@ -1,0 +1,96 @@
+# Hatchet stack (bundled postgres + rabbitmq). Homelab: hatchet.${DOMAIN} via the
+# shared Gateway (HTTPRoute), engine gRPC via a LoadBalancer + ExternalDNS.
+sharedConfig:
+  enabled: true
+  defaultAdminEmail: "admin@${DOMAIN}"
+  defaultAdminPassword: "${SECRET_HATCHET_ADMIN_PASSWORD}"
+
+api:
+  enabled: true
+  replicaCount: 1
+  env:
+    SERVER_AUTH_COOKIE_DOMAIN: "${COMP_HOSTNAME}.${DOMAIN}"
+    SERVER_URL: "http://${COMP_HOSTNAME}.${DOMAIN}"
+    SERVER_GRPC_BIND_ADDRESS: "0.0.0.0"
+    SERVER_GRPC_INSECURE: "true"
+    SERVER_GRPC_BROADCAST_ADDRESS: "hatchet-engine.${DOMAIN}:7070"
+    serverAuthCookieInsecure: "t"
+    serverAuthSetEmailVerified: "t"
+    serverAuthBasicAuthEnabled: "t"
+    DATABASE_ENFORCE_UTC_TIMEZONE: "false"
+  image: { repository: "ghcr.io/hatchet-dev/hatchet/hatchet-api", tag: "v0.84.0", pullPolicy: "IfNotPresent" }
+  migrationJob:
+    image: { repository: "ghcr.io/hatchet-dev/hatchet/hatchet-migrate", tag: "v0.84.0", pullPolicy: "IfNotPresent" }
+  serviceAccount: { create: true, name: hatchet-api }
+  envFrom:
+    - secretRef: { name: hatchet-shared-config }
+  service: { type: ClusterIP }
+  ingress: { enabled: false }
+  health:
+    enabled: true
+    spec:
+      livenessProbe: { httpGet: { path: /api/live, port: 8080 }, periodSeconds: 5, initialDelaySeconds: 60 }
+      readinessProbe: { httpGet: { path: /api/ready, port: 8080 }, periodSeconds: 5, initialDelaySeconds: 20 }
+
+engine:
+  enabled: true
+  nameOverride: engine
+  replicaCount: 1
+  env:
+    SERVER_AUTH_COOKIE_DOMAIN: "${COMP_HOSTNAME}.${DOMAIN}"
+    SERVER_URL: "http://${COMP_HOSTNAME}.${DOMAIN}"
+    SERVER_GRPC_BIND_ADDRESS: "0.0.0.0"
+    SERVER_GRPC_INSECURE: "true"
+    SERVER_GRPC_BROADCAST_ADDRESS: "hatchet-engine.${DOMAIN}:7070"
+    serverAuthCookieInsecure: "t"
+    serverAuthSetEmailVerified: "t"
+    serverAuthBasicAuthEnabled: "t"
+    DATABASE_ENFORCE_UTC_TIMEZONE: "false"
+  image: { repository: "ghcr.io/hatchet-dev/hatchet/hatchet-engine", tag: "v0.84.0", pullPolicy: "IfNotPresent" }
+  setupJob: { enabled: false }
+  service:
+    type: LoadBalancer            # gRPC on 7070; IP auto-assigned by Cilium LB-IPAM
+    externalPort: 7070
+    internalPort: 7070
+    annotations:
+      external-dns.alpha.kubernetes.io/hostname: hatchet-engine.${DOMAIN}
+  commandline: { command: ["/hatchet/hatchet-engine"] }
+  serviceAccount: { create: true, name: hatchet-engine }
+  envFrom:
+    - secretRef: { name: hatchet-shared-config }
+  ingress: { enabled: false }
+  health:
+    enabled: true
+    spec:
+      livenessProbe: { httpGet: { path: /live, port: 8733 }, periodSeconds: 5, initialDelaySeconds: 60 }
+      readinessProbe: { httpGet: { path: /ready, port: 8733 }, periodSeconds: 5, initialDelaySeconds: 20 }
+
+frontend:
+  enabled: true
+  image: { repository: "ghcr.io/hatchet-dev/hatchet/hatchet-frontend", tag: "v0.84.0", pullPolicy: "IfNotPresent" }
+  service: { type: ClusterIP, externalPort: 80, internalPort: 80 }
+  ingress: { enabled: false }
+
+postgres:
+  enabled: true
+  image: { repository: "bitnamilegacy/postgresql", tag: "17.4.0-debian-12-r9" }
+  global:
+    security: { allowInsecureImages: true }
+  auth: { username: "hatchet", password: "hatchet", database: "hatchet" }
+  tls: { enabled: false }
+  primary:
+    resourcesPreset: "medium"
+    service: { ports: { postgresql: 5432 } }
+
+rabbitmq:
+  enabled: true
+  image: { repository: "bitnamilegacy/rabbitmq", tag: "4.1.3" }
+  ulimitNofiles: 1024
+  global:
+    defaultStorageClass: "local-path"
+    security: { allowInsecureImages: true }
+  auth: { username: "hatchet", password: "hatchet" }
+  service: { ports: { amqp: 5672 } }
+
+caddy:
+  enabled: false

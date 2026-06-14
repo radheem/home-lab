@@ -1,0 +1,7 @@
+name: nats
+category: messaging
+namespace: messaging
+type: kustomize-helm
+waits:
+  # 60s startup-probe delay + JetStream init; allow headroom.
+  - "kubectl -n messaging rollout status statefulset/nats --timeout=360s"

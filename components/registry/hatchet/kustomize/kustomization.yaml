@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: workflow
+helmCharts:
+  - name: hatchet-stack
+    repo: https://hatchet-dev.github.io/hatchet-charts
+    version: 0.10.5
+    releaseName: hatchet-stack
+    namespace: workflow
+    valuesFile: values.yaml
+resources:
+  - httproute.yaml
