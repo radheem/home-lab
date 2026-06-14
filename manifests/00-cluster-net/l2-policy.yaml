@@ -1,0 +1,11 @@
+# Announce LoadBalancer / external IPs via ARP on eth0 so LAN devices can
+# reach the pinned DNS / Gateway IPs.
+apiVersion: cilium.io/v2alpha1
+kind: CiliumL2AnnouncementPolicy
+metadata:
+  name: default-l2-policy
+spec:
+  interfaces:
+    - ^eth0$
+  externalIPs: true
+  loadBalancerIPs: true

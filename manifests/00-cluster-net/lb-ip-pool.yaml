@@ -1,0 +1,8 @@
+# Pool of IPs Cilium LB-IPAM can hand to type=LoadBalancer services.
+apiVersion: cilium.io/v2alpha1
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: k3d-pool
+spec:
+  blocks:
+    - cidr: "${LB_CIDR}"
