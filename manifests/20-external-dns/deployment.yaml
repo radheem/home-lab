@@ -1,0 +1,39 @@
+# ExternalDNS: watches Gateway HTTPRoutes, derives <hostname> -> <Gateway LB IP>,
+# and writes the records into etcd (coredns provider). This is the "zero-touch"
+# engine — add an HTTPRoute hostname and the record appears automatically.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: external-dns
+  namespace: external-dns
+  labels:
+    app: external-dns
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: external-dns
+  template:
+    metadata:
+      labels:
+        app: external-dns
+    spec:
+      serviceAccountName: external-dns
+      containers:
+        - name: external-dns
+          image: registry.k8s.io/external-dns/external-dns:v0.15.1
+          args:
+            - --source=gateway-httproute
+            - --provider=coredns
+            - --registry=txt
+            - --txt-owner-id=k3d-lab
+            - --txt-prefix=_edns.
+            - --domain-filter=${LOCAL_TLD}
+            - --policy=sync          # allows record deletion when routes go away
+            - --interval=30s
+            - --log-level=debug      # observability (goal #3)
+          env:
+            - name: ETCD_URLS
+              value: http://10.43.0.20:2379   # etcd-client ClusterIP (by IP, see 10-dns-system/etcd.yaml)
