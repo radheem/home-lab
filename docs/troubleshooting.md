@@ -94,3 +94,68 @@ kubectl -n kube-system exec ds/cilium -- hubble observe    # live flows
 # Hubble UI:
 kubectl -n kube-system port-forward svc/hubble-ui 12000:80
 ```
+
+## Components & monitoring
+
+**`components.sh` targets the wrong cluster**
+- It prefers the repo-local `kubeconfig-<CLUSTER_NAME>.yaml`. If preflight reports
+  *all* platform prereqs missing on a healthy cluster, that file is absent/stale —
+  regenerate it: `k3d kubeconfig get <CLUSTER_NAME> > kubeconfig-<CLUSTER_NAME>.yaml`.
+
+**Apply fails: `metadata.annotations: Too long: may not be more than 262144 bytes`**
+- A large object (e.g. a dashboard ConfigMap) exceeds the client-side
+  `last-applied-configuration` annotation limit. Use **server-side apply**:
+  `kubectl apply --server-side --force-conflicts -f -` (components.sh already does this).
+
+**Grafana login fails / admin password mismatch**
+- The chart's `grafana` secret can drift from the password persisted in Grafana's PVC
+  after a redeploy. Reset it in-place:
+  ```bash
+  kubectl -n monitoring exec deploy/grafana -c grafana -- \
+    grafana cli admin reset-admin-password '<newpass>'
+  ```
+  Or get the current secret value:
+  `kubectl -n monitoring get secret grafana -o jsonpath='{.data.admin-password}' | base64 -d`.
+  For a clean secret-matched password: `./components.sh remove --only grafana` →
+  `kubectl -n monitoring delete pvc -l app.kubernetes.io/name=grafana` → redeploy.
+
+**A dashboard is empty (no data)**
+1. Are the metrics in VictoriaMetrics? Query VMSingle directly:
+   ```bash
+   kubectl -n monitoring run vmq --rm -i --restart=Never --image=curlimages/curl:8.10.1 --command -- \
+     curl -s 'http://vmsingle-observability-vm.monitoring.svc:8429/api/v1/query?query=count(up)'
+   # also try: cilium_version, cilium_operator_version, hubble_flows_processed_total, node_uname_info
+   ```
+2. Is the scrape target up? Check VMAgent: `kubectl -n monitoring get vmpodscrape,vmservicescrape`
+   and `kubectl -n monitoring logs deploy/vmagent-observability-vmagent`.
+3. Confirm the metric ports the scrapes target still match:
+   ```bash
+   kubectl -n kube-system get pod -l k8s-app=cilium \
+     -o jsonpath='{range .items[0].spec.containers[*]}{range .ports[*]}{.name}={.containerPort} {end}{end}{"\n"}'
+   # expect: prometheus=9962 hubble-metrics=9965 ; operator: prometheus=9963
+   kubectl -n monitoring get svc prometheus-node-exporter -o jsonpath='{.spec.ports[0].name}{"\n"}'  # metrics
+   ```
+4. Datasource binding: the dashboard JSON must reference the VictoriaMetrics datasource
+   `uid: victoriametrics` (prebuilt ones are pre-bound; for new imports set the datasource).
+
+**Dashboard not appearing in Grafana**
+- The sidecar imports ConfigMaps labeled `grafana_dashboard=1` (searchNamespace ALL):
+  ```bash
+  kubectl -n monitoring get cm -l grafana_dashboard=1
+  POD=$(kubectl -n monitoring get pod -l app.kubernetes.io/name=grafana -o jsonpath='{.items[0].metadata.name}')
+  kubectl -n monitoring logs "$POD" -c grafana-sc-dashboard | grep Writing      # sidecar wrote files
+  kubectl -n monitoring logs "$POD" -c grafana | grep -i 'provision dashboards' # grafana loaded them
+  ```
+
+**Grafana CrashLoopBackOff: `failed to install plugin ... context deadline exceeded`**
+- The pod has no egress to grafana.com for plugin downloads. Don't rely on external
+  plugins — use built-in datasource types (VictoriaMetrics via the `prometheus` type,
+  traces via `jaeger`), as `components/registry/grafana` does.
+
+**NATS StatefulSet never Ready: `Waiting for routing` / `no meta leader`**
+- A 1-node NATS **cluster** never elects a JetStream leader. Run NATS **standalone**
+  (`config.cluster.enabled: false`) on a single host; cluster mode needs ≥3 replicas.
+
+**k3d create fails: `Pool overlaps with other one on this address space`**
+- `CLUSTER_SUBNET` overlaps an existing docker network. List them and pick a free /24:
+  `docker network ls -q | xargs -r docker network inspect -f '{{.Name}} {{range .IPAM.Config}}{{.Subnet}} {{end}}'`
