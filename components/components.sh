@@ -82,13 +82,14 @@ deploy_component() {  # <name>
       rm -f "$rendered"; [ $rc -eq 0 ] || return 1
       ;;
     kustomize)
-      # server-side apply: avoids the 256KB last-applied-config annotation limit
-      # (large dashboard ConfigMaps) and is idempotent.
-      kubectl kustomize "${REGISTRY_DIR}/${name}/kustomize" | comp_envsubst | kubectl apply --server-side --force-conflicts -f - || return 1
+      # -n "$ns": force the component namespace on namespaced objects (some kustomize
+      # versions don't stamp the `namespace:` transformer onto helm-inflated resources).
+      # server-side apply also avoids the 256KB last-applied-config annotation limit.
+      kubectl kustomize "${REGISTRY_DIR}/${name}/kustomize" | comp_envsubst | kubectl apply -n "$ns" --server-side --force-conflicts -f - || return 1
       ;;
     kustomize-helm)
       local tmp; tmp="$(render_dir_to_tmp "${REGISTRY_DIR}/${name}/kustomize")"
-      kubectl kustomize --enable-helm "$tmp" | kubectl apply --server-side --force-conflicts -f -; local rc=$?
+      kubectl kustomize --enable-helm "$tmp" | kubectl apply -n "$ns" --server-side --force-conflicts -f -; local rc=$?
       rm -rf "$tmp"; [ $rc -eq 0 ] || return 1
       ;;
     *) die "unknown component type for ${name}: ${type}" ;;
@@ -115,10 +116,10 @@ remove_component() {  # <name>
   export_comp_env "$name"
   case "$type" in
     helm) helm uninstall "$(comp_meta "$name" '.chart.release')" -n "$ns" 2>/dev/null || true ;;
-    kustomize) kubectl kustomize "${REGISTRY_DIR}/${name}/kustomize" | comp_envsubst | kubectl delete -f - --ignore-not-found 2>/dev/null || true ;;
+    kustomize) kubectl kustomize "${REGISTRY_DIR}/${name}/kustomize" | comp_envsubst | kubectl delete -n "$ns" -f - --ignore-not-found 2>/dev/null || true ;;
     kustomize-helm)
       local tmp; tmp="$(render_dir_to_tmp "${REGISTRY_DIR}/${name}/kustomize")"
-      kubectl kustomize --enable-helm "$tmp" | kubectl delete -f - --ignore-not-found 2>/dev/null || true
+      kubectl kustomize --enable-helm "$tmp" | kubectl delete -n "$ns" -f - --ignore-not-found 2>/dev/null || true
       rm -rf "$tmp" ;;
   esac
 }
