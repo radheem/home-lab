@@ -10,3 +10,8 @@ home-lab-ca.crt
 .render-*
 # Runtime logs
 logs/
+# Imported external stack — source only, never commit
+temp-artifacts/
+# Component selection + secrets (live files; commit the .example instead)
+components/components.yaml
+components/components.secrets.env
