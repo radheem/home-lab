@@ -1,0 +1,2 @@
+# victoria-metrics-operator 0.59.2 — installs CRDs; manages VM/VL/VT + scrapers.
+# Chart defaults are fine for a homelab; CRDs come from the chart.

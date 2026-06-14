@@ -1,0 +1,7 @@
+name: grafana
+category: monitoring
+namespace: monitoring
+type: kustomize-helm
+dependsOn: [victoria-metrics]
+waits:
+  - "kubectl -n monitoring rollout status deploy/grafana --timeout=180s"

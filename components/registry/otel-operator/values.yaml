@@ -1,0 +1,11 @@
+# opentelemetry-operator 0.107.0 — cert-manager-backed admission webhooks
+# (the homelab provides cert-manager).
+admissionWebhooks:
+  certManager:
+    enabled: true
+kubeRBACProxy:
+  enabled: true
+manager:
+  resources:
+    requests: { cpu: 100m, memory: 64Mi }
+    limits: { cpu: 100m, memory: 128Mi }

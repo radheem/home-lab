@@ -1,0 +1,15 @@
+name: otel-operator
+category: monitoring
+namespace: monitoring
+type: helm
+chart:
+  repo: https://open-telemetry.github.io/opentelemetry-helm-charts
+  name: opentelemetry-operator
+  version: 0.107.0
+  release: opentelemetry-operator
+  valuesFile: values.yaml
+crds:
+  - opentelemetrycollectors.opentelemetry.io
+crdTimeout: 180s
+waits:
+  - "kubectl -n monitoring rollout status deploy/opentelemetry-operator --timeout=180s"

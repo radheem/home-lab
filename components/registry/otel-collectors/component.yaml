@@ -1,0 +1,7 @@
+name: otel-collectors
+category: monitoring
+namespace: monitoring
+type: kustomize
+dependsOn: [otel-operator, victoria-metrics]
+waits:
+  - "kubectl -n monitoring rollout status deploy/dev-gateway-collector --timeout=180s"

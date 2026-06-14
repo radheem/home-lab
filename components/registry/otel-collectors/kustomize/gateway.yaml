@@ -1,0 +1,117 @@
+# OTel gateway (deployment) — receives from the agents, fans out to VictoriaMetrics
+# (metrics), VictoriaLogs (logs), VictoriaTraces (traces) + spanmetrics/servicegraph.
+# Replica of qe8-gateway (renamed dev-gateway; buffer PVC -> dev-gateway-buffer).
+apiVersion: opentelemetry.io/v1beta1
+kind: OpenTelemetryCollector
+metadata:
+  name: dev-gateway
+spec:
+  mode: deployment
+  replicas: 1
+  image: ghcr.io/open-telemetry/opentelemetry-collector-releases/opentelemetry-collector-contrib:0.111.0
+  managementState: managed
+  podSecurityContext:
+    fsGroup: 10001
+  volumes:
+    - name: file-storage
+      persistentVolumeClaim:
+        claimName: dev-gateway-buffer
+  volumeMounts:
+    - name: file-storage
+      mountPath: /var/lib/otelcol
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    connectors:
+      spanmetrics:
+        namespace: traces.spanmetrics
+        metrics_flush_interval: 30s
+        exemplars:
+          enabled: true
+        dimensions:
+          - { name: cluster }
+          - { name: service.namespace }
+          - { name: http.method }
+          - { name: http.status_code }
+        histogram:
+          explicit:
+            buckets: [5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2s, 5s, 10s]
+      servicegraph:
+        dimensions: [cluster]
+        latency_histogram_buckets: [10ms, 100ms, 250ms, 1s, 5s, 10s]
+        store:
+          max_items: 1000
+          ttl: 2s
+    extensions:
+      file_storage:
+        directory: /var/lib/otelcol/buffer
+        create_directory: true
+        compaction:
+          on_start: true
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 80
+        spike_limit_percentage: 15
+      batch:
+        send_batch_size: 10000
+        timeout: 5s
+    exporters:
+      prometheusremotewrite/vm:
+        endpoint: http://vmsingle-observability-vm.monitoring.svc.cluster.local:8429/api/v1/write
+        resource_to_telemetry_conversion:
+          enabled: true
+        retry_on_failure:
+          enabled: true
+      otlphttp/vm:
+        metrics_endpoint: http://vmsingle-observability-vm.monitoring.svc.cluster.local:8429/opentelemetry/v1/metrics
+        compression: gzip
+        encoding: proto
+        retry_on_failure:
+          enabled: true
+      otlphttp/vl:
+        logs_endpoint: http://vlsingle-observability-vl.monitoring.svc.cluster.local:9428/insert/opentelemetry/v1/logs
+        compression: gzip
+        encoding: proto
+        retry_on_failure:
+          enabled: true
+        sending_queue:
+          enabled: true
+          storage: file_storage
+      otlphttp/vt:
+        traces_endpoint: http://vtsingle-observability-vt.monitoring.svc.cluster.local:10428/insert/opentelemetry/v1/traces
+        compression: gzip
+        encoding: proto
+        retry_on_failure:
+          enabled: true
+        sending_queue:
+          enabled: true
+          storage: file_storage
+    service:
+      extensions: [file_storage]
+      pipelines:
+        metrics:
+          receivers: [otlp, spanmetrics, servicegraph]
+          processors: [memory_limiter, batch]
+          exporters: [prometheusremotewrite/vm]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlphttp/vl]
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlphttp/vt, spanmetrics, servicegraph]
+      telemetry:
+        metrics:
+          readers:
+            - pull:
+                exporter:
+                  prometheus:
+                    host: 0.0.0.0
+                    port: 8888

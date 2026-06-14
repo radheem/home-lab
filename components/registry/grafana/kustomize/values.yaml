@@ -1,0 +1,51 @@
+# grafana 10.5.15 — homelab: ClusterIP + HTTPRoute on shared-gateway (no LB).
+enabled: true
+initChownData:
+  enabled: false
+persistence:
+  enabled: true
+  type: pvc
+  accessModes: [ReadWriteOnce]
+  size: ${COMP_STORAGESIZE}
+  storageClassName: local-path
+# No external plugins (pods may lack egress to grafana.com, and plugin-install
+# failure crashes Grafana). VictoriaMetrics is queried via the built-in Prometheus
+# datasource; VictoriaTraces via the built-in Jaeger type. (VictoriaLogs needs its
+# plugin — add it offline later if you want logs in Grafana.)
+service:
+  type: ClusterIP        # exposed via HTTPRoute on the shared Gateway
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    labelValue: "1"
+    folderAnnotation: k8s-sidecar-target-directory
+    searchNamespace: ALL
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: VictoriaMetrics
+        type: prometheus           # VictoriaMetrics is Prometheus-API compatible
+        uid: victoriametrics
+        access: proxy
+        isDefault: true
+        url: http://vmsingle-observability-vm.monitoring.svc.cluster.local:8429
+      - name: VictoriaTraces
+        type: jaeger
+        uid: victoriatraces
+        access: proxy
+        isDefault: false
+        url: http://vtsingle-observability-vt.monitoring.svc.cluster.local:10428/select/jaeger/api
+        jsonData:
+          nodeGraph:
+            enabled: true
+      - name: Alertmanager
+        type: alertmanager
+        uid: alertmanager
+        access: proxy
+        isDefault: false
+        url: http://vmalertmanager-observability-am.monitoring.svc.cluster.local:9093
+        jsonData:
+          handleGrafanaManagedAlerts: false
+          implementation: prometheus

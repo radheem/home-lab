@@ -1,0 +1,13 @@
+# Persistent buffer for the gateway's file_storage extension (otlphttp/vl + /vt
+# sending queues). Mounted by dev-gateway at /var/lib/otelcol.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dev-gateway-buffer
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: local-path

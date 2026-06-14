@@ -1,0 +1,12 @@
+name: node-exporter
+category: monitoring
+namespace: monitoring
+type: helm
+chart:
+  repo: https://prometheus-community.github.io/helm-charts
+  name: prometheus-node-exporter
+  version: 4.43.0
+  release: prometheus-node-exporter
+  valuesFile: values.yaml
+waits:
+  - "kubectl -n monitoring rollout status ds/prometheus-node-exporter --timeout=120s"

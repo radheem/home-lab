@@ -1,0 +1,33 @@
+# VictoriaLogs (VLSingle) + VictoriaTraces (VTSingle).
+apiVersion: operator.victoriametrics.com/v1
+kind: VLSingle
+metadata:
+  name: observability-vl
+spec:
+  replicaCount: 1
+  retentionPeriod: 14d
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+  storage:
+    accessModes: [ReadWriteOnce]
+    resources:
+      requests:
+        storage: 30Gi
+    storageClassName: local-path
+---
+apiVersion: operator.victoriametrics.com/v1
+kind: VTSingle
+metadata:
+  name: observability-vt
+spec:
+  replicaCount: 1
+  retentionPeriod: 7d
+  resources:
+    requests: { cpu: 250m, memory: 512Mi }
+    limits: { cpu: "1", memory: 2Gi }
+  storage:
+    accessModes: [ReadWriteOnce]
+    resources:
+      requests:
+        storage: 30Gi
+    storageClassName: local-path

@@ -1,0 +1,7 @@
+name: victoria-metrics
+category: monitoring
+namespace: monitoring
+type: kustomize
+dependsOn: [victoria-metrics-operator]
+waits:
+  - "kubectl -n monitoring rollout status deploy/vmsingle-observability-vm --timeout=300s"

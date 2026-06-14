@@ -1,0 +1,16 @@
+# prometheus-node-exporter 4.43.0
+prometheus:
+  monitor:
+    enabled: false
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 100Mi
+tolerations:
+  - effect: NoSchedule
+    operator: Exists
+  - effect: NoExecute
+    operator: Exists

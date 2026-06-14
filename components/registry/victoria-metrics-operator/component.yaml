@@ -1,0 +1,20 @@
+name: victoria-metrics-operator
+category: monitoring
+namespace: monitoring
+type: helm
+chart:
+  repo: https://victoriametrics.github.io/helm-charts/
+  name: victoria-metrics-operator
+  version: 0.59.2
+  release: victoria-metrics-operator
+  valuesFile: values.yaml
+crds:
+  - vmsingles.operator.victoriametrics.com
+  - vmagents.operator.victoriametrics.com
+  - vmalerts.operator.victoriametrics.com
+  - vmalertmanagers.operator.victoriametrics.com
+  - vlsingles.operator.victoriametrics.com
+  - vtsingles.operator.victoriametrics.com
+crdTimeout: 180s
+waits:
+  - "kubectl -n monitoring rollout status deploy/victoria-metrics-operator --timeout=180s"

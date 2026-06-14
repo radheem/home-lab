@@ -1,0 +1,81 @@
+# VMSingle + VMAgent + VMAlert + VMAlertmanager (managed by victoria-metrics-operator).
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMSingle
+metadata:
+  name: observability-vm
+spec:
+  replicaCount: 1
+  retentionPeriod: ${COMP_RETENTION}
+  nodeScrapeSelector: {}
+  podScrapeSelector: {}
+  serviceScrapeSelector: {}
+  storage:
+    accessModes: [ReadWriteOnce]
+    resources:
+      requests:
+        storage: ${COMP_STORAGESIZE}
+    storageClassName: local-path
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAgent
+metadata:
+  name: observability-vmagent
+spec:
+  replicaCount: 1
+  selectAllByDefault: true
+  nodeScrapeSelector: {}
+  nodeScrapeNamespaceSelector: {}
+  podScrapeSelector: {}
+  podScrapeNamespaceSelector: {}
+  serviceScrapeSelector: {}
+  serviceScrapeNamespaceSelector: {}
+  remoteWrite:
+    - url: http://vmsingle-observability-vm.monitoring.svc.cluster.local:8429/api/v1/write
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlert
+metadata:
+  name: observability-vmalert
+spec:
+  replicaCount: 1
+  evaluationInterval: 30s
+  datasource: { url: http://vmsingle-observability-vm.monitoring.svc.cluster.local:8429 }
+  remoteRead: { url: http://vmsingle-observability-vm.monitoring.svc.cluster.local:8429 }
+  remoteWrite: { url: http://vmsingle-observability-vm.monitoring.svc.cluster.local:8429 }
+  notifiers:
+    - url: http://vmalertmanager-observability-am.monitoring.svc.cluster.local:9093
+  ruleSelector: {}
+  ruleNamespaceSelector: {}
+  resources:
+    requests: { cpu: 50m, memory: 64Mi }
+    limits: { memory: 256Mi }
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMAlertmanager
+metadata:
+  name: observability-am
+spec:
+  replicaCount: 1
+  configRawYaml: |
+    global:
+      resolve_timeout: 5m
+    route:
+      receiver: "null"
+      group_by: ["alertname", "namespace"]
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 4h
+    receivers:
+      - name: "null"
+    inhibit_rules: []
+  storage:
+    volumeClaimTemplate:
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests:
+            storage: 1Gi
+        storageClassName: local-path
+  resources:
+    requests: { cpu: 25m, memory: 32Mi }
+    limits: { memory: 128Mi }
