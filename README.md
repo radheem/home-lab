@@ -74,6 +74,7 @@ with a `*.home.lan` hostname. Nothing else — DNS + HTTPS are automatic.
 | `experiments/` | End-to-end validation runs (local, tailscale, remote approval) |
 
 ## Runbooks & experiments
+- How it all fits together (diagrams): [docs/architecture.md](docs/architecture.md)
 - Deploy + verify locally: [docs/runbook-local.md](docs/runbook-local.md)
 - Deploy + verify over Tailscale: [docs/runbook-tailscale.md](docs/runbook-tailscale.md)
 - Validation history & gotchas: [experiments/](experiments/) (01 local ✅, 02 tailscale ⏸, 03 remote approval 📐)
