@@ -8,7 +8,8 @@ Run the homelab cluster inside **WSL2** and reach its assigned hostnames
   Desktop WSL integration or native `docker`).
 - In WSL — same CLIs/versions as [deploy-local.md](deploy-local.md):
   `docker 29.4.1 · k3d v5.8.3 · kubectl v1.31.0 · helm v3.18.2 · jq 1.7 · envsubst (gettext 0.21)`
-  plus **`socat`** (`sudo apt-get install -y socat`) for the port forwarders.
+  plus **`socat`** and **`tmux`** (`sudo apt-get install -y socat tmux`) for the
+  `tools/lb-forward.sh` port forwarders.
 - On **Windows**: a browser, Administrator access (to edit `hosts` + trust the CA).
 - Full version matrix: [README Prerequisites](../../README.md#prerequisites).
 
@@ -35,31 +36,31 @@ Two WSL specifics:
 
 ## 2. Expose the services on WSL's `0.0.0.0` (so Windows can reach them)
 
-WSL2 forwards a port listening in WSL to Windows `localhost`. Run a TCP forwarder
-(`socat`) from WSL ports → the cluster LB IPs. All HTTP hostnames share the Gateway IP
-(`172.28.210.80`), so **one forwarder per port** covers every HTTP host.
+WSL2 forwards a port listening in WSL to Windows `localhost`. Use the helper
+`tools/lb-forward.sh` — it reads the Gateway/DNS LB IPs from `.env` and runs `socat`
+forwarders in a **detached tmux session** (so they survive your terminal). All HTTP
+hostnames share the Gateway IP, so one forwarder per port covers every HTTP host.
 
 ```bash
-sudo apt-get install -y socat
+sudo apt-get install -y socat tmux
 
-# HTTP + HTTPS gateway (covers grafana, hatchet, whoami, ... — routed by Host header).
-# Keep these running (a terminal each, or append & / use tmux).
-sudo socat TCP-LISTEN:80,fork,reuseaddr,bind=0.0.0.0  TCP:172.28.210.80:80
-sudo socat TCP-LISTEN:443,fork,reuseaddr,bind=0.0.0.0 TCP:172.28.210.80:443
-```
+# DNS(53 udp+tcp) + Gateway(80,443) from .env — sudo because ports <1024:
+sudo ./tools/lb-forward.sh up
 
-For raw-TCP services, forward each to its own LB IP (get them with the commands shown):
-```bash
-# discover the LB IPs:
+# raw-TCP services have per-deploy LB IPs — pass them with --ip:
 kubectl get svc -A | awk '$3=="LoadBalancer"{printf "%-12s %-16s %s\n",$1,$2,$5}'
-#   messaging   nats        172.28.210.54
-#   cnpg-system homelab-pg  172.28.210.55
-#   cnpg-system ferretdb    172.28.210.56
+sudo ./tools/lb-forward.sh add 5432  5432  --ip <postgres-LB-IP> --name postgres
+sudo ./tools/lb-forward.sh add 27017 27017 --ip <ferretdb-LB-IP> --name ferretdb
+sudo ./tools/lb-forward.sh add 4222  4222  --ip <nats-LB-IP>     --name nats
 
-sudo socat TCP-LISTEN:5432,fork,reuseaddr,bind=0.0.0.0  TCP:172.28.210.55:5432   # postgres
-sudo socat TCP-LISTEN:27017,fork,reuseaddr,bind=0.0.0.0 TCP:172.28.210.56:27017  # ferretdb
-sudo socat TCP-LISTEN:4222,fork,reuseaddr,bind=0.0.0.0  TCP:172.28.210.54:4222   # nats
+./tools/lb-forward.sh status      # list forwarders + listeners
+./tools/lb-forward.sh down        # stop them all (kills the tmux session)
+# inspect a forwarder live:  tmux attach -t lb-forward   (detach: Ctrl-b d)
 ```
+
+> Prefer no sudo? Use high host ports (`add 8080 80 --to gateway`) and hit
+> `localhost:8080` from Windows. Manual one-off equivalent:
+> `socat TCP4-LISTEN:80,fork,reuseaddr,bind=0.0.0.0 TCP4:<gateway-LB-IP>:80`.
 
 ## 3. Tell Windows the hostnames point at localhost
 
