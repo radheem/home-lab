@@ -28,16 +28,32 @@ bpf:
   masquerade: true
   lbAcceleration: "disable"
 
-# Observability (goal #3): Hubble flow visibility + UI.
+# Prometheus metrics on cilium-agent (:9962) — scraped into VictoriaMetrics.
+prometheus:
+  enabled: true
+
+# Observability: Hubble flow visibility + UI + flow metrics (:9965).
 hubble:
   enabled: true
   relay:
     enabled: true
   ui:
     enabled: true
+  metrics:
+    enableOpenMetrics: true
+    enabled:
+      - dns
+      - drop
+      - tcp
+      - flow
+      - port-distribution
+      - icmp
+      - httpV2
 
 operator:
   replicas: 1
+  prometheus:
+    enabled: true            # cilium-operator metrics (:9963)
 
 # Announce LoadBalancer / external IPs on the L2 segment (ARP).
 l2announcements:
