@@ -1,0 +1,88 @@
+# Authoritative CoreDNS for ${LOCAL_TLD}. Reads records from etcd (written by
+# ExternalDNS) and forwards everything else to the public upstreams. Exposed to
+# the LAN on a pinned Cilium LoadBalancer IP at :53 (UDP + TCP).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-auth
+  namespace: dns-system
+data:
+  Corefile: |
+    ${LOCAL_TLD}:53 {
+        errors
+        log
+        etcd ${LOCAL_TLD} {
+            path /skydns
+            endpoint http://10.43.0.20:2379    # etcd-client ClusterIP (by IP, see etcd.yaml)
+            fallthrough
+        }
+        cache 30
+        loadbalance
+    }
+    .:53 {
+        errors
+        log
+        forward . ${UPSTREAM_DNS} {
+            policy sequential
+        }
+        cache 30
+        prometheus 0.0.0.0:9153
+    }
+---
+# DaemonSet (one pod per node) so the node holding the Cilium L2 lease for the
+# LoadBalancer IP always has a LOCAL backend. Combined with the Service's
+# externalTrafficPolicy: Local, this avoids cross-node LB forwarding (which is
+# unreliable in k3d) and preserves the client source IP.
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: coredns-auth
+  namespace: dns-system
+  labels:
+    app: coredns-auth
+spec:
+  selector:
+    matchLabels:
+      app: coredns-auth
+  template:
+    metadata:
+      labels:
+        app: coredns-auth
+    spec:
+      containers:
+        - name: coredns
+          image: coredns/coredns:1.12.0
+          args: ["-conf", "/etc/coredns/Corefile"]
+          ports:
+            - { name: dns, containerPort: 53, protocol: UDP }
+            - { name: dns-tcp, containerPort: 53, protocol: TCP }
+            - { name: metrics, containerPort: 9153, protocol: TCP }
+          readinessProbe:
+            tcpSocket: { port: 53 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: config
+              mountPath: /etc/coredns
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            name: coredns-auth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coredns-auth
+  namespace: dns-system
+  annotations:
+    # Pin the LoadBalancer IP via Cilium LB-IPAM.
+    lbipam.cilium.io/ips: "${DNS_LB_IP}"
+spec:
+  type: LoadBalancer
+  externalTrafficPolicy: Local   # announce only from nodes with a local pod; keep src IP
+  selector:
+    app: coredns-auth
+  ports:
+    - { name: dns, port: 53, targetPort: 53, protocol: UDP }
+    - { name: dns-tcp, port: 53, targetPort: 53, protocol: TCP }
