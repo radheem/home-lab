@@ -1,0 +1,51 @@
+# Helm values for the CLUSTER DNS (kube-dns) — replaces the k3s CoreDNS we
+# disabled. Rendered by install.sh via envsubst.
+#
+# Two zones:
+#   .          -> normal cluster DNS (cluster.local + upstream via resolv.conf)
+#   ${LOCAL_TLD} -> forwarded to the authoritative CoreDNS LB IP so in-cluster
+#                   pods can also resolve *.${LOCAL_TLD}.
+serviceAccount:
+  create: true
+rbac:
+  create: true
+isClusterService: true
+
+# kubelet points pods at 10.43.0.10 (k3s default --cluster-dns); pin it.
+service:
+  clusterIP: 10.43.0.10
+
+servers:
+  - zones:
+      - zone: .
+    port: 53
+    plugins:
+      - name: errors
+      - name: health
+        configBlock: |-
+          lameduck 5s
+      - name: ready
+      - name: kubernetes
+        parameters: cluster.local in-addr.arpa ip6.arpa
+        configBlock: |-
+          pods insecure
+          fallthrough in-addr.arpa ip6.arpa
+          ttl 30
+      - name: prometheus
+        parameters: 0.0.0.0:9153
+      - name: forward
+        parameters: . /etc/resolv.conf
+      - name: cache
+        parameters: 30
+      - name: loop
+      - name: reload
+      - name: loadbalance
+  - zones:
+      - zone: ${LOCAL_TLD}
+    port: 53
+    plugins:
+      - name: errors
+      - name: cache
+        parameters: 30
+      - name: forward
+        parameters: . ${DNS_LB_IP}

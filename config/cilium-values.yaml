@@ -1,0 +1,47 @@
+# Helm values for Cilium. Datapath: native routing, kube-proxy replacement,
+# Gateway API, L2 announcements + LB-IPAM for LoadBalancer services.
+routingMode: "native"
+autoDirectNodeRoutes: true
+ipv4NativeRoutingCIDR: "10.42.0.0/16"
+ipam:
+  mode: "kubernetes"
+
+kubeProxyReplacement: true
+k8sServicePort: 6443
+
+l7Proxy: true
+
+# Cilium creates the `cilium` GatewayClass when this is enabled.
+gatewayAPI:
+  enabled: true
+  enableAlpn: true
+  enableAppProtocol: true
+
+loadBalancer:
+  enabled: true
+  algorithm: "maglev"
+  acceleration: "native"
+  l7:
+    algorithm: "maglev"
+
+bpf:
+  masquerade: true
+  lbAcceleration: "disable"
+
+# Observability (goal #3): Hubble flow visibility + UI.
+hubble:
+  enabled: true
+  relay:
+    enabled: true
+  ui:
+    enabled: true
+
+operator:
+  replicas: 1
+
+# Announce LoadBalancer / external IPs on the L2 segment (ARP).
+l2announcements:
+  enabled: true
+
+externalIPs:
+  enabled: true
