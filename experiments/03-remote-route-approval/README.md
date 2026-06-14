@@ -78,7 +78,7 @@ curl -s -H "Authorization: Bearer $HEADSCALE_API_KEY" "$HEADSCALE_URL/api/v1/api
 # approve our router's route
 bash tailscale/approve-route.sh
 # confirm approved (PrimaryRoutes now lists the CIDR)
-tailscale status --json | jq -r '.Peer[]|select(.HostName=="qube-ltcdev-ts-router")|.PrimaryRoutes'
+tailscale status --json | jq -r '.Peer[]|select(.HostName=="qube-homelab-ts-router")|.PrimaryRoutes'
 ```
 Then resume **Experiment 02 Step 4** (dig/curl from a tailnet machine).
 

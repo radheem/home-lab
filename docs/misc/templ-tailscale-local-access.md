@@ -15,7 +15,7 @@ override is enough.
 
 | Placeholder | This cluster (example) | How to find it |
 |---|---|---|
-| `<REMOTE_TS>` | `100.64.0.2` (`ltcdev`) | `tailscale ip` on the remote |
+| `<REMOTE_TS>` | `100.64.0.10` (`homelab`) | `tailscale ip` on the remote |
 | `<GATEWAY_IP>` | `172.28.210.80` | `kubectl -n gateway-system get gateway shared-gateway -o jsonpath='{.status.addresses[0].value}'` |
 | `<NATS_IP>` | `172.28.210.54` | `kubectl -n messaging get svc nats -o jsonpath='{.status.loadBalancer.ingress[0].ip}'` |
 | `<POSTGRES_IP>` | `172.28.210.55` | `kubectl -n cnpg-system get svc homelab-pg -o jsonpath='{...ingress[0].ip}'` |

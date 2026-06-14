@@ -43,7 +43,7 @@ admin) are generated on first deploy into `components.secrets.env` (gitignored).
 
 ## 2. Deploy
 ```bash
-export KUBECONFIG=$PWD/../kubeconfig-qube-ltcdev.yaml   # or let components.sh auto-pick it
+export KUBECONFIG=$PWD/../kubeconfig-qube-homelab.yaml   # or let components.sh auto-pick it
 ./components.sh deploy                 # all enabled, in dependency order
 ./components.sh deploy --only grafana  # one component (+ its deps)
 ./components.sh deploy --dry-run       # print resolved order, apply nothing

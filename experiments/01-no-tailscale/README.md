@@ -14,7 +14,7 @@ Specifically, confirm:
 ## Environment (from `.env`)
 | Key | Value |
 |-----|-------|
-| Cluster | `qube-ltcdev` |
+| Cluster | `qube-homelab` |
 | TLD | `home.lan` |
 | Authoritative DNS (LB IP) | `172.28.210.53:53` |
 | Shared Gateway (LB IP) | `172.28.210.80:80/443` |

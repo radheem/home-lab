@@ -3,7 +3,7 @@
 Bring up the cluster and verify zero-touch DNS + ingress on the local network.
 Validated end-to-end in [Experiment 01](../experiments/01-no-tailscale/).
 
-> Conventions: `CLUSTER_NAME=qube-<LOCAL_HOST>` (e.g. `qube-ltcdev`); set
+> Conventions: `CLUSTER_NAME=qube-<LOCAL_HOST>` (e.g. `qube-homelab`); set
 > `export KUBECONFIG=$PWD/kubeconfig-$CLUSTER_NAME.yaml` after install. Values below
 > use the defaults `DNS_LB_IP=172.28.210.53`, `GATEWAY_LB_IP=172.28.210.80`,
 > `LOCAL_TLD=home.lan` — adjust to your `.env`.
