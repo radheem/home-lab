@@ -4,11 +4,13 @@
 
 `./install.sh` deploys cert-manager plus an **internal CA chain**:
 
-```
-selfsigned-bootstrap (ClusterIssuer)
-   └─> home-lab-ca (Certificate, isCA, secret home-lab-ca-tls in ns cert-manager)
-          └─> home-lab-ca (ClusterIssuer, ca.secretName=home-lab-ca-tls)
-                 └─> wildcard-tls (Certificate *.home.lan -> secret in ns gateway-system)
+```mermaid
+flowchart TB
+    ssi["ClusterIssuer: selfsigned-bootstrap"]
+    ca["Certificate: home-lab-ca (isCA)<br/>-> secret home-lab-ca-tls (ns cert-manager)"]
+    cai["ClusterIssuer: home-lab-ca<br/>ca.secretName=home-lab-ca-tls"]
+    wc["Certificate: wildcard-tls<br/>*.home.lan -> secret (ns gateway-system)"]
+    ssi --> ca --> cai --> wc
 ```
 
 The shared Gateway's HTTPS listener uses `wildcard-tls`, so every `*.home.lan`

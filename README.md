@@ -7,29 +7,24 @@ ExternalDNS into an authoritative CoreDNS that your LAN queries directly.
 
 ## Architecture
 
-```
-                LAN device (dig whoami.home.lan)
-                          │  router conditional-forwards *.home.lan
-                          ▼
-        ┌──────────────── authoritative CoreDNS ────────────────┐
-        │  Service type=LoadBalancer  @ 172.28.240.53:53 (L2/ARP) │
-        │  zone home.lan -> etcd (/skydns)                        │
-        │  zone .        -> forward 1.1.1.1 9.9.9.9               │
-        └───────────────▲───────────────────────────────────────┘
-                         │ reads                  ▲ writes records
-                       etcd  ◄──────────────  ExternalDNS
-                                              (--source=gateway-httproute)
-                                                     │ watches
-   app: Deployment + Service + HTTPRoute(whoami.home.lan) ──┘
-                         │ attaches to
-        ┌──────────── shared Cilium Gateway ─────────────┐
-        │  LoadBalancer @ 172.28.240.80  :80 / :443(TLS) │
-        │  wildcard cert *.home.lan  (cert-manager CA)    │
-        └─────────────────────────────────────────────────┘
+```mermaid
+flowchart TB
+    dev["LAN device<br/>dig whoami.home.lan"]
+    dev -->|"router forwards *.home.lan"| cdns
+    app["app: Deployment + Service<br/>+ HTTPRoute(whoami.home.lan)"]
+    edns["ExternalDNS<br/>(gateway-httproute + service)"]
+    cdns["authoritative CoreDNS<br/>LoadBalancer 172.28.210.53:53 (L2/ARP)<br/>zone home.lan -> etcd · zone . -> 1.1.1.1 9.9.9.9"]
+    etcd[("etcd /skydns")]
+    gw["shared Cilium Gateway<br/>LoadBalancer 172.28.210.80 :80/:443(TLS)<br/>wildcard *.home.lan (cert-manager CA)"]
+    edns -->|writes records| etcd
+    cdns -->|reads| etcd
+    edns -->|watches| app
+    app -->|attaches to| gw
+    dev -->|"HTTP/HTTPS"| gw
 
-   CNI/datapath: Cilium (kube-proxy replacement, native routing,
-   L2 announcements + LB-IPAM, Gateway API, Hubble).
-   Storage: k3s local-path provisioner -> ${CLUSTER_VOLUME_STORE} on the host.
+    subgraph platform["Cilium datapath + storage"]
+      note["kube-proxy replacement · native routing · L2 + LB-IPAM · Gateway API · Hubble<br/>storage: k3s local-path -> CLUSTER_VOLUME_STORE on host"]
+    end
 ```
 
 Two CoreDNS instances by design: the **cluster** CoreDNS (kube-dns, `cluster.local`)
