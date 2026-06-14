@@ -78,28 +78,32 @@ deploy_component() {  # <name>
       local rendered; rendered="$(mktemp)"
       [ -f "$vf" ] && comp_envsubst < "$vf" > "$rendered" || : > "$rendered"
       helm upgrade --install "$release" "$chart" --repo "$repo" --version "$ver" \
-        --namespace "$ns" --create-namespace -f "$rendered"
-      rm -f "$rendered"
+        --namespace "$ns" --create-namespace -f "$rendered"; local rc=$?
+      rm -f "$rendered"; [ $rc -eq 0 ] || return 1
       ;;
     kustomize)
       # server-side apply: avoids the 256KB last-applied-config annotation limit
       # (large dashboard ConfigMaps) and is idempotent.
-      kubectl kustomize "${REGISTRY_DIR}/${name}/kustomize" | comp_envsubst | kubectl apply --server-side --force-conflicts -f -
+      kubectl kustomize "${REGISTRY_DIR}/${name}/kustomize" | comp_envsubst | kubectl apply --server-side --force-conflicts -f - || return 1
       ;;
     kustomize-helm)
       local tmp; tmp="$(render_dir_to_tmp "${REGISTRY_DIR}/${name}/kustomize")"
-      kubectl kustomize --enable-helm "$tmp" | kubectl apply --server-side --force-conflicts -f -
-      rm -rf "$tmp"
+      kubectl kustomize --enable-helm "$tmp" | kubectl apply --server-side --force-conflicts -f -; local rc=$?
+      rm -rf "$tmp"; [ $rc -eq 0 ] || return 1
       ;;
     *) die "unknown component type for ${name}: ${type}" ;;
   esac
 
-  # CRDs first (operators), then rollout/object waits.
-  local crd w ct; ct="$(comp_meta "$name" '.crdTimeout')"
-  for crd in $(comp_meta "$name" '(.crds // [])[]'); do wait_crd "$crd" "${ct:-120s}"; done
+  # CRDs first (operators), then rollout/object waits. Waits retry to absorb the
+  # brief apply->visible race (rollout status can momentarily see NotFound).
+  local crd w ct i; ct="$(comp_meta "$name" '.crdTimeout')"
+  for crd in $(comp_meta "$name" '(.crds // [])[]'); do wait_crd "$crd" "${ct:-120s}" || return 1; done
   while IFS= read -r w; do
     [ -z "$w" ] && continue
-    eval "$w"
+    i=0; until eval "$w"; do
+      i=$((i+1)); [ "$i" -ge 3 ] && { log_err "wait failed: $w"; return 1; }
+      log_warn "wait retry $i/3 (resource may not be visible yet)…"; sleep 5
+    done
   done < <(comp_meta "$name" '(.waits // [])[]')
   log_info "✓ ${name}"
 }
@@ -131,9 +135,18 @@ do_deploy() {
   fi
   [ -n "$order" ] || { log_warn "no components enabled in $SELECTION"; return 0; }
   log_info "install order: $(echo "$order" | tr '\n' ' ')"
-  local c; for c in $order; do deploy_component "$c"; done
+  # Continue past a failing component so one failure doesn't block the rest;
+  # report at the end. Re-running is idempotent — failed ones retry cleanly.
+  local c; local FAILED=()
+  for c in $order; do
+    deploy_component "$c" || { log_err "✗ ${c} failed"; FAILED+=("$c"); }
+  done
   $DRY && { log_info "(dry-run) nothing applied"; return 0; }
   print_summary $order
+  if [ ${#FAILED[@]} -ne 0 ]; then
+    log_err "failed: ${FAILED[*]} — re-run './components.sh deploy' (idempotent) or '--only <name>'"
+    return 1
+  fi
 }
 
 # deps of a single component (for --only), topo-ordered
