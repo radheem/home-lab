@@ -6,6 +6,31 @@ export KUBECONFIG=$PWD/kubeconfig-<CLUSTER_NAME>.yaml
 kubectl get pods -A
 ```
 
+## Install / storage permissions
+
+**`install.sh` fails creating the volume dir, or PVCs/pods can't write (permission denied)**
+- `CLUSTER_VOLUME_STORE` (default `/db/srv/k3d-store`) is the host path that backs the
+  k3s local-path provisioner (and the `/data` PVCs on it). If you don't own `/db` — or
+  it doesn't exist / is read-only — `install.sh` (`mkdir -p`) or PVC provisioning fails.
+- Pick **one**:
+  - Point it at a directory you own, in `.env`:
+    ```ini
+    CLUSTER_VOLUME_STORE=$HOME/k3d-store      # or any path you can write
+    ```
+  - Or create the path and fix ownership/permissions:
+    ```bash
+    sudo mkdir -p /db/srv/k3d-store
+    sudo chown -R "$(id -u):$(id -g)" /db/srv/k3d-store
+    chmod -R u+rwX /db/srv/k3d-store
+    ```
+- Symptoms to confirm it's storage: install error at "Creating directory
+  $CLUSTER_VOLUME_STORE", PVCs stuck `Pending`, or pods (etcd/postgres/grafana)
+  CrashLooping on mount/permission errors:
+  ```bash
+  kubectl get pvc -A
+  kubectl -n kube-system logs -l app=local-path-provisioner   # provisioner errors
+  ```
+
 ## DNS resolution
 
 **`dig @172.28.210.53 whoami.home.lan` returns nothing / times out**
