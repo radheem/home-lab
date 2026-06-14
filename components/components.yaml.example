@@ -1,0 +1,55 @@
+# Component selection + basic config for the homelab add-on stack.
+#   cp components.yaml.example components.yaml   (components.yaml is gitignored)
+#   ./components.sh deploy
+#
+# Toggle `enabled` per component. Dependencies are pulled automatically
+# (e.g. enabling postgres-cluster also installs cnpg-operator). Run
+# `./components.sh list` to see the registry + dependency graph.
+#
+# Secrets are NOT set here — they live in the gitignored components.secrets.env
+# (auto-generated on first deploy).
+
+defaults:
+  domain: home.lan          # falls back to LOCAL_TLD from ../.env
+
+components:
+  # ---- monitoring ----------------------------------------------------------
+  node-exporter:
+    enabled: true
+  victoria-metrics-operator:
+    enabled: false          # auto-enabled by victoria-metrics
+  victoria-metrics:         # VMSingle + VMAgent + VMAlert(manager), VLogs, VTraces
+    enabled: false
+    retention: 30d
+    storageSize: 20Gi
+  otel-operator:
+    enabled: false          # auto-enabled by otel-collectors
+  otel-collectors:          # OTel agent (DaemonSet) + gateway (Deployment)
+    enabled: false
+  grafana:
+    enabled: false
+    hostname: grafana       # -> grafana.home.lan (HTTPRoute on shared-gateway)
+    storageSize: 10Gi
+
+  # ---- messaging -----------------------------------------------------------
+  nats:                     # standalone + JetStream (single-host; clustering off)
+    enabled: false
+    hostname: nats          # -> nats.home.lan (LoadBalancer :4222)
+    storageSize: 1Gi
+
+  # ---- workflow ------------------------------------------------------------
+  hatchet:                  # bundled postgres + rabbitmq
+    enabled: false
+    hostname: hatchet       # -> hatchet.home.lan (HTTPRoute), engine gRPC via LB
+
+  # ---- database ------------------------------------------------------------
+  cnpg-operator:
+    enabled: false          # auto-enabled by postgres-cluster
+  postgres-cluster:         # CloudNativePG Cluster + iris_db + admin role
+    enabled: false
+    instances: 1            # 1 for single-host (prod uses 2-3)
+    storageSize: 20Gi
+    hostname: postgres      # -> postgres.home.lan (LoadBalancer :5432)
+  ferretdb:                 # MongoDB-compatible front-end over postgres
+    enabled: false
+    hostname: ferretdb      # -> ferretdb.home.lan (LoadBalancer :27017)
