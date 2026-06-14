@@ -77,6 +77,8 @@ with a `*.home.lan` hostname. Nothing else — DNS + HTTPS are automatic.
 - How it all fits together (diagrams): [docs/architecture.md](docs/architecture.md)
 - Deploy + verify locally: [docs/runbook-local.md](docs/runbook-local.md)
 - Deploy + verify over Tailscale: [docs/runbook-tailscale.md](docs/runbook-tailscale.md)
+- WSL cluster + browse from Windows: [docs/runbook-wsl-windows.md](docs/runbook-wsl-windows.md)
+- Add-on components (monitoring/messaging/workflow/db): [docs/runbook-components.md](docs/runbook-components.md) — selectable via [components/](components/)
 - Validation history & gotchas: [experiments/](experiments/) (01 local ✅, 02 tailscale ⏸, 03 remote approval 📐)
 
 ## TLS
