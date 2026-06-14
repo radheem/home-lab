@@ -1,0 +1,12 @@
+# Secrets and generated state — never commit
+.env
+kubeconfig-*.yaml
+*.key
+*.pem
+home-lab-ca.crt
+# Rendered/temp artifacts
+*-resolved.yaml
+.render/
+.render-*
+# Runtime logs
+logs/
