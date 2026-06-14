@@ -1,0 +1,21 @@
+# LoadBalancer alias to the current primary (CNPG also provides homelab-pg-rw/-ro/-r
+# ClusterIP services). Published to DNS by the homelab ExternalDNS.
+apiVersion: v1
+kind: Service
+metadata:
+  name: homelab-pg
+  namespace: cnpg-system
+  labels:
+    app: homelab-pg
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: ${COMP_HOSTNAME}.${DOMAIN}
+spec:
+  type: LoadBalancer
+  selector:
+    cnpg.io/cluster: homelab-pg
+    cnpg.io/instanceRole: primary
+  ports:
+    - protocol: TCP
+      port: 5432
+      targetPort: 5432
+      name: postgres

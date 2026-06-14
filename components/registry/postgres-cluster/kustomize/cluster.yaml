@@ -1,0 +1,42 @@
+# CloudNativePG cluster: Postgres 17 with the FerretDB/DocumentDB + pgvector extensions.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: homelab-pg
+  namespace: cnpg-system
+spec:
+  imageName: ghcr.io/ferretdb/postgres-documentdb:17-0.107.0-ferretdb-2.7.0
+  instances: ${COMP_INSTANCES}
+  postgresUID: 999
+  postgresGID: 999
+  enableSuperuserAccess: true
+  managed:
+    roles:
+      - name: dbadmin
+        ensure: present
+        login: true
+        superuser: true
+        passwordSecret:
+          name: dbadmin-creds
+  affinity:
+    podAntiAffinityType: preferred   # single-host friendly (instances may co-locate)
+  bootstrap:
+    initdb:
+      database: app
+      owner: app
+      encoding: UTF8
+      localeCollate: C
+      localeCType: C
+      postInitSQL:
+        - CREATE EXTENSION IF NOT EXISTS vector;
+        - CREATE EXTENSION IF NOT EXISTS documentdb CASCADE;
+  postgresql:
+    shared_preload_libraries:
+      - pg_cron
+      - pg_documentdb_core
+      - pg_documentdb
+    parameters:
+      cron.database_name: postgres
+  storage:
+    size: ${COMP_STORAGESIZE}
+    storageClass: local-path

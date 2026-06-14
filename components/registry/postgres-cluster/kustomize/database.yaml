@@ -1,0 +1,12 @@
+# Declaratively create the appdb database owned by dbadmin on the homelab-pg cluster.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: appdb
+  namespace: cnpg-system
+spec:
+  cluster:
+    name: homelab-pg
+  name: appdb
+  owner: dbadmin
+  ensure: present

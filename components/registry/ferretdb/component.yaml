@@ -1,0 +1,7 @@
+name: ferretdb
+category: database
+namespace: cnpg-system
+type: kustomize
+dependsOn: [postgres-cluster]
+waits:
+  - "kubectl -n cnpg-system rollout status deploy/ferretdb --timeout=180s"

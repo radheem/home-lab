@@ -1,0 +1,8 @@
+name: postgres-cluster
+category: database
+namespace: cnpg-system
+type: kustomize
+dependsOn: [cnpg-operator]
+secrets: [POSTGRES_ADMIN_PASSWORD]
+waits:
+  - "wait_cnpg cnpg-system homelab-pg 600"

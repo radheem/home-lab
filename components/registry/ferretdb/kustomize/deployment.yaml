@@ -1,0 +1,35 @@
+# FerretDB v2: stateless MongoDB-compatible frontend; data lives in the CNPG
+# documentdb backend (postgres DB on homelab-pg). Superuser password is injected
+# from the CNPG-generated secret via dependent-env expansion ($(...)), never written here.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ferretdb
+  namespace: cnpg-system
+  labels:
+    app: ferretdb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ferretdb
+  template:
+    metadata:
+      labels:
+        app: ferretdb
+    spec:
+      containers:
+        - name: ferretdb
+          image: ghcr.io/ferretdb/ferretdb:2.7.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 27017
+              name: mongo
+          env:
+            - name: PG_SUPERUSER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: homelab-pg-superuser
+                  key: password
+            - name: FERRETDB_POSTGRESQL_URL
+              value: postgresql://postgres:$(PG_SUPERUSER_PASSWORD)@homelab-pg-rw.cnpg-system.svc.cluster.local:5432/postgres

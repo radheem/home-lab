@@ -1,0 +1,16 @@
+name: cnpg-operator
+category: database
+namespace: cnpg-system
+type: helm
+chart:
+  repo: https://cloudnative-pg.github.io/charts
+  name: cloudnative-pg
+  version: 0.27.1
+  release: cnpg
+  valuesFile: values.yaml
+crds:
+  - clusters.postgresql.cnpg.io
+  - databases.postgresql.cnpg.io
+crdTimeout: 180s
+waits:
+  - "kubectl -n cnpg-system rollout status deploy/cnpg-cloudnative-pg --timeout=180s"

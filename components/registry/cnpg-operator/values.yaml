@@ -1,0 +1,9 @@
+# CloudNativePG operator 0.27.1 (operator image 1.28.1). Installs CNPG CRDs.
+monitoring:
+  podMonitorEnabled: false       # no Prometheus PodMonitor CRD required
+crds:
+  create: true
+replicaCount: 1
+config:
+  clusterWide: true
+  maxConcurrentReconciles: 10
