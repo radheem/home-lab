@@ -42,8 +42,14 @@ require_tools() {
 export_kubeconfig() {
   KUBECONFIG_FILE="${ROOT_DIR}/kubeconfig-${CLUSTER_NAME}.yaml"
   k3d kubeconfig get "${CLUSTER_NAME}" > "${KUBECONFIG_FILE}"
+  # k3d sets the kubeconfig server to the kubeAPI host (API_SERVER_FQDN), which may
+  # not resolve on this machine. Point local kubectl at loopback (127.0.0.1 is a
+  # TLS SAN in k3d-config). Remote access (Tailscale/LAN) rewrites this back to the
+  # FQDN — see docs/runbook-tailscale.md.
+  local port="${API_SERVER_PORT:-16443}"
+  sed -i -E "s#(server: https://)[^:/]+(:${port})#\1127.0.0.1\2#" "${KUBECONFIG_FILE}"
   export KUBECONFIG="${KUBECONFIG_FILE}"
-  log_info "KUBECONFIG -> ${KUBECONFIG_FILE}"
+  log_info "KUBECONFIG -> ${KUBECONFIG_FILE} (server 127.0.0.1:${port})"
 }
 
 # --- Apply helpers ------------------------------------------------------------

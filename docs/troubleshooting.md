@@ -31,6 +31,20 @@ kubectl get pods -A
   kubectl -n kube-system logs -l app=local-path-provisioner   # provisioner errors
   ```
 
+**`install.sh` stuck at "Waiting for API server" / `kubectl: lookup <host>: no such host`**
+- The kubeconfig's `server:` was set to `API_SERVER_FQDN` (from `.env`), which doesn't
+  resolve on this machine. `install.sh` now rewrites the **local** kubeconfig to
+  `https://127.0.0.1:${API_SERVER_PORT}` (127.0.0.1 is a TLS SAN), so pull latest and
+  re-run. On an older checkout, fix the file in place:
+  ```bash
+  sed -i -E 's#(server: https://)[^:/]+(:16443)#\1127.0.0.1\2#' kubeconfig-<CLUSTER>.yaml
+  ```
+- `API_SERVER_FQDN` is only for **remote** API access (Tailscale/LAN), where that name
+  is pointed at the host. It is unrelated to resolving **service** hostnames
+  (`*.home.lan`) — for that see "Make it usable LAN-wide" in
+  [runbook-local.md](runbook-local.md) (router conditional-forward or per-device DNS to
+  the authoritative server `DNS_LB_IP`), or add `/etc/hosts` entries.
+
 ## DNS resolution
 
 **`dig @172.28.210.53 whoami.home.lan` returns nothing / times out**
