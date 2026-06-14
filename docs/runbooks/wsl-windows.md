@@ -38,29 +38,31 @@ Two WSL specifics:
 
 WSL2 forwards a port listening in WSL to Windows `localhost`. Use the helper
 `tools/lb-forward.sh` — it reads the Gateway/DNS LB IPs from `.env` and runs `socat`
-forwarders in a **detached tmux session** (so they survive your terminal). All HTTP
-hostnames share the Gateway IP, so one forwarder per port covers every HTTP host.
+forwarders. Pass **`-d`** to run them in a **detached tmux session** (so they survive
+your terminal — what you usually want on WSL); without `-d` they run in the foreground
+(blocks; Ctrl-C stops). All HTTP hostnames share the Gateway IP, so one forwarder per
+port covers every HTTP host.
 
 ```bash
 sudo apt-get install -y socat tmux
 
-# DNS(53 udp+tcp) + Gateway(80,443) from .env — sudo because ports <1024:
-sudo ./tools/lb-forward.sh up
+# DNS(53 udp+tcp) + Gateway(80,443) from .env — detached; sudo because ports <1024:
+sudo ./tools/lb-forward.sh -d up
 
 # raw-TCP services have per-deploy LB IPs — pass them with --ip:
 kubectl get svc -A | awk '$3=="LoadBalancer"{printf "%-12s %-16s %s\n",$1,$2,$5}'
-sudo ./tools/lb-forward.sh add 5432  5432  --ip <postgres-LB-IP> --name postgres
-sudo ./tools/lb-forward.sh add 27017 27017 --ip <ferretdb-LB-IP> --name ferretdb
-sudo ./tools/lb-forward.sh add 4222  4222  --ip <nats-LB-IP>     --name nats
+sudo ./tools/lb-forward.sh -d add 5432  5432  --ip <postgres-LB-IP> --name postgres
+sudo ./tools/lb-forward.sh -d add 27017 27017 --ip <ferretdb-LB-IP> --name ferretdb
+sudo ./tools/lb-forward.sh -d add 4222  4222  --ip <nats-LB-IP>     --name nats
 
-./tools/lb-forward.sh status      # list forwarders + listeners
+./tools/lb-forward.sh status      # list detached forwarders + listeners
 ./tools/lb-forward.sh down        # stop them all (kills the tmux session)
 # inspect a forwarder live:  tmux attach -t lb-forward   (detach: Ctrl-b d)
 ```
 
-> Prefer no sudo? Use high host ports (`add 8080 80 --to gateway`) and hit
-> `localhost:8080` from Windows. Manual one-off equivalent:
-> `socat TCP4-LISTEN:80,fork,reuseaddr,bind=0.0.0.0 TCP4:<gateway-LB-IP>:80`.
+> Foreground (no `-d`) is handy for a quick one-off: `sudo ./tools/lb-forward.sh up`
+> blocks the terminal and stops on Ctrl-C. Prefer no sudo? Use high host ports
+> (`-d add 8080 80 --to gateway`) and hit `localhost:8080` from Windows.
 
 ## 3. Tell Windows the hostnames point at localhost
 
