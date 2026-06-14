@@ -1,0 +1,27 @@
+# ealen/echo-server: returns request metadata as JSON. Handy for confirming the
+# request actually traversed DNS -> Gateway -> Service -> Pod.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo
+  namespace: echo
+  labels:
+    app: echo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo
+  template:
+    metadata:
+      labels:
+        app: echo
+    spec:
+      containers:
+        - name: echo
+          image: ealen/echo-server:0.9.2
+          env:
+            - name: PORT
+              value: "3000"
+          ports:
+            - containerPort: 3000
