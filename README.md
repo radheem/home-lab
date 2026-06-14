@@ -42,11 +42,21 @@ cluster one forwards `home.lan` to the authoritative LB IP so pods resolve it to
 | kubectl | v1.31.0 | `kubectl kustomize` used (no standalone kustomize needed) |
 | helm | v3.18.2 | charts: cilium, coredns, cert-manager |
 | jq | 1.7 | |
-| yq | Python jq-wrapper (`/usr/bin/yq`) | components selector parsing |
+| yq | **Python jq-wrapper** (kislyuk/yq) | components selector — **must be this yq, not mikefarah's** |
 | envsubst | GNU gettext 0.21 | template rendering |
 | dig | BIND 9.18 (`dnsutils`) | verification |
 | tailscale | any | only for `--with-router` / Tailscale access |
 | socat | any | only for the WSL→Windows runbook |
+
+> **Which `yq`?** `components.sh` uses jq syntax, so it needs the **Python jq-wrapper
+> `yq`** ([kislyuk/yq](https://github.com/kislyuk/yq)) — **not** mikefarah's Go `yq`.
+> Install it (also needs `jq`):
+> ```bash
+> pipx install yq        # or: pip install --user yq   (PyPI package "yq")
+> ```
+> Verify: `yq --version` shows `yq <3.x>` and `yq --help` mentions *jq*. If instead it
+> prints a `mikefarah` GitHub URL / `v4.x`, the selector fails with
+> `lexer: invalid input text "...cii_upcase..."` — swap to the jq-wrapper.
 
 OS tested: **Ubuntu 24.04 LTS** (kernel 6.17). Rough sizing: 2 CPU / 4 GB for the
 core platform; ~4 CPU / 8 GB if you enable the full component stack.

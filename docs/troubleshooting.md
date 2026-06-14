@@ -136,6 +136,13 @@ kubectl -n kube-system port-forward svc/hubble-ui 12000:80
 
 ## Components & monitoring
 
+**`components.sh` errors `lexer: invalid input text "...cii_upcase..."` (and configs don't substitute)**
+- Wrong `yq`. The selector needs the **Python jq-wrapper `yq`** (kislyuk/yq), not
+  mikefarah's Go `yq` (which parses `ascii_upcase` as its `as` keyword). Symptom knock-on:
+  `COMP_*` vars aren't exported, so e.g. `.spec.instances: expected numeric ... got string`.
+  Install the jq-wrapper: `pipx install yq` (needs `jq`); see
+  [README Prerequisites](../README.md#prerequisites). Then re-run `./components.sh deploy`.
+
 **`components.sh` targets the wrong cluster**
 - It prefers the repo-local `kubeconfig-<CLUSTER_NAME>.yaml`. If preflight reports
   *all* platform prereqs missing on a healthy cluster, that file is absent/stale —
