@@ -36,8 +36,9 @@ done
 
 [ -f "$SELECTION" ] || die "selection file not found: $SELECTION (cp components.yaml.example components.yaml)"
 load_env "$ENV_FILE"
-# Default to the homelab's repo-local kubeconfig if the caller didn't set one.
-if [ -z "${KUBECONFIG:-}" ] && [ -f "${ROOT_DIR}/kubeconfig-${CLUSTER_NAME}.yaml" ]; then
+# Prefer this cluster's repo-local kubeconfig over any ambient KUBECONFIG
+# (the user's shell may point KUBECONFIG at other clusters).
+if [ -f "${ROOT_DIR}/kubeconfig-${CLUSTER_NAME}.yaml" ]; then
   export KUBECONFIG="${ROOT_DIR}/kubeconfig-${CLUSTER_NAME}.yaml"
 fi
 load_secrets
@@ -81,11 +82,13 @@ deploy_component() {  # <name>
       rm -f "$rendered"
       ;;
     kustomize)
-      kubectl kustomize "${REGISTRY_DIR}/${name}/kustomize" | comp_envsubst | kubectl apply -f -
+      # server-side apply: avoids the 256KB last-applied-config annotation limit
+      # (large dashboard ConfigMaps) and is idempotent.
+      kubectl kustomize "${REGISTRY_DIR}/${name}/kustomize" | comp_envsubst | kubectl apply --server-side --force-conflicts -f -
       ;;
     kustomize-helm)
       local tmp; tmp="$(render_dir_to_tmp "${REGISTRY_DIR}/${name}/kustomize")"
-      kubectl kustomize --enable-helm "$tmp" | kubectl apply -f -
+      kubectl kustomize --enable-helm "$tmp" | kubectl apply --server-side --force-conflicts -f -
       rm -rf "$tmp"
       ;;
     *) die "unknown component type for ${name}: ${type}" ;;
