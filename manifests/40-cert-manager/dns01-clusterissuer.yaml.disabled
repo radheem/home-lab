@@ -1,0 +1,31 @@
+# =============================================================================
+# FUTURE: public-domain ACME DNS-01. NOT wired into the installer.
+#
+# Why disabled: a public CA (Let's Encrypt) cannot validate an internal-only TLD
+# like `home.lan`, and cert-manager has no native CoreDNS/etcd DNS-01 solver.
+# To get publicly-trusted certs you must own a real public domain and delegate
+# its DNS-01 challenge to a supported provider (Cloudflare shown below) or run a
+# local ACME CA (e.g. smallstep step-ca) that solves DNS-01 via RFC2136.
+#
+# To use: own e.g. lab.example.com, point apps at *.lab.example.com, create the
+# api-token secret, then `kubectl apply -f` this file. See docs/cert-manager.md.
+# =============================================================================
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-dns01
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: you@example.com
+    privateKeySecretRef:
+      name: letsencrypt-dns01-account
+    solvers:
+      - dns01:
+          cloudflare:
+            apiTokenSecretRef:
+              name: cloudflare-api-token
+              key: api-token
+        selector:
+          dnsZones:
+            - "lab.example.com"

@@ -1,0 +1,55 @@
+# Local TLS chain (works today for an internal-only TLD):
+#   selfsigned-bootstrap  ->  home-lab CA cert  ->  home-lab-ca ClusterIssuer
+#   home-lab-ca           ->  *.${LOCAL_TLD} wildcard cert (Gateway HTTPS secret)
+#
+# Trust home-lab-ca.crt on your devices once and every *.${LOCAL_TLD} cert is valid.
+# (Public ACME DNS-01 is NOT possible for an internal-only TLD — see dns01-clusterissuer.yaml.disabled.)
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-bootstrap
+spec:
+  selfSigned: {}
+---
+# Root CA, signed by the self-signed bootstrap issuer. Secret lives in the
+# cert-manager namespace (cert-manager's default --cluster-resource-namespace).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: home-lab-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: home-lab-ca
+  secretName: home-lab-ca-tls
+  duration: 87600h      # 10y
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-bootstrap
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: home-lab-ca
+spec:
+  ca:
+    secretName: home-lab-ca-tls
+---
+# Wildcard cert for the Gateway HTTPS listener.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wildcard-tls
+  namespace: gateway-system
+spec:
+  secretName: wildcard-tls
+  duration: 8760h       # 1y
+  dnsNames:
+    - "${LOCAL_TLD}"
+    - "*.${LOCAL_TLD}"
+  issuerRef:
+    name: home-lab-ca
+    kind: ClusterIssuer
