@@ -5,13 +5,13 @@ your own component to the registry. The deployer is **idempotent** and
 **dependency-aware**, so this is safe to run against a live cluster — only the new
 work is applied.
 
-> This is the day-2 companion to [runbook-components.md](runbook-components.md) (first
-> deploy). The cluster must already be up per [runbook-local.md](runbook-local.md).
+> This is the day-2 companion to [deploy-components.md](deploy-components.md) (first
+> deploy). The cluster must already be up per [deploy-local.md](deploy-local.md).
 
 ## 0. Prerequisites
 - A running, verified cluster (`./install.sh` done).
 - Tools — tested versions: `kubectl v1.31.0 · helm v3.18.2 · yq (Python jq-wrapper) ·
-  envsubst (gettext 0.21)`. Full matrix: [README Prerequisites](../README.md#prerequisites).
+  envsubst (gettext 0.21)`. Full matrix: [README Prerequisites](../../README.md#prerequisites).
 - `components.sh` auto-targets the repo-local `kubeconfig-<CLUSTER_NAME>.yaml`
   (it overrides any ambient `KUBECONFIG`).
 
@@ -114,4 +114,4 @@ data gone.)
   replicas/storage in `components.yaml`. The full stack wants ~4 CPU / 8 GB.
 - New CRDs from an operator component must be `Established` before its CR component
   applies — model the operator as a dependency with `crds:` (the deployer waits).
-- Issues: [troubleshooting.md](troubleshooting.md) (§"Components & monitoring").
+- Issues: [troubleshooting.md](../troubleshooting.md) (§"Components & monitoring").

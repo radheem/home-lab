@@ -9,7 +9,7 @@ override is enough.
 > This exercises the **Gateway hostname routing + TLS** end-to-end. It does *not* use
 > the cluster's CoreDNS (you override resolution locally). For the fully DNS-resolved
 > path with zero local config, approve the Tailscale subnet route instead
-> ([runbook-tailscale.md](../runbook-tailscale.md) + experiments 02/03).
+> ([tailscale-access.md](../runbooks/tailscale-access.md) + experiments 02/03).
 
 ## Fill in for your cluster
 
@@ -23,7 +23,7 @@ override is enough.
 | TLD | `home.lan` | `LOCAL_TLD` in `.env` |
 
 Prereq: the **remote host** can reach the LB IPs. On a non-bridged/cloud host add a
-route once (see [runbook-local.md](../runbook-local.md) §host caveat):
+route once (see [deploy-local.md](../runbooks/deploy-local.md) §host caveat):
 `sudo ip route add <LB_CIDR> dev br-<k3dnet>`.
 
 ## HTTP UIs (Grafana, Hatchet, whoami…) — one tunnel for all

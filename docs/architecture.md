@@ -184,7 +184,7 @@ host directory (`CLUSTER_VOLUME_STORE`), so data persists on the device.
 
 A subnet router advertises the LB pool to a Headscale tailnet, so the same LB IPs are
 reachable remotely. The advertised route must be approved (see
-[runbook-tailscale.md](runbook-tailscale.md) and
+[tailscale-access.md](runbooks/tailscale-access.md) and
 [experiment 03](../experiments/03-remote-route-approval/)).
 
 ```mermaid

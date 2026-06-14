@@ -1,7 +1,7 @@
 # Runbook — Local / LAN deployment (no Tailscale)
 
 Bring up the cluster and verify zero-touch DNS + ingress on the local network.
-Validated end-to-end in [Experiment 01](../experiments/01-no-tailscale/).
+Validated end-to-end in [Experiment 01](../../experiments/01-no-tailscale/).
 
 > Conventions: `CLUSTER_NAME=<LOCAL_HOST>` (e.g. `homelab`); set
 > `export KUBECONFIG=$PWD/kubeconfig-$CLUSTER_NAME.yaml` after install. Values below
@@ -14,7 +14,7 @@ Validated end-to-end in [Experiment 01](../experiments/01-no-tailscale/).
   `kubectl kustomize` is used, so no standalone `kustomize` is needed.
 - Docker running; ports free; outbound internet (Helm charts, images, Gateway CRDs).
 - OS tested: Ubuntu 24.04 LTS (kernel 6.17). Pinned platform versions (k3s/Cilium/
-  Gateway API/cert-manager) live in `.env` — see the [README Prerequisites](../README.md#prerequisites).
+  Gateway API/cert-manager) live in `.env` — see the [README Prerequisites](../../README.md#prerequisites).
 
 ## 2. Configure `.env`
 ```bash
@@ -109,4 +109,4 @@ kubectl delete ns echo                 # remove test app
 sudo ip route del <LB_CIDR> dev "$BR"  # if you added the host route
 ```
 
-Problems? See [troubleshooting.md](troubleshooting.md).
+Problems? See [troubleshooting.md](../troubleshooting.md).

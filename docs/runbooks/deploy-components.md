@@ -23,7 +23,7 @@ auto-pulls its dependencies.
 | database | `postgres-cluster` (+ `cnpg-operator`), `ferretdb` |
 
 ## 0. Prerequisites
-- The homelab cluster is up and verified: [runbook-local.md](runbook-local.md).
+- The homelab cluster is up and verified: [deploy-local.md](deploy-local.md).
   `components.sh` preflight checks cert-manager, the shared Gateway, ExternalDNS
   (with `--source=service`), `local-path`, and the Cilium LB-IPAM pool — and refuses
   to run if any is missing.
@@ -33,7 +33,7 @@ auto-pulls its dependencies.
   `components/registry/<name>/component.yaml` (node-exporter 4.43.0, victoria-metrics-operator
   0.59.2, opentelemetry-operator 0.107.0, grafana 10.5.15, nats 2.12.4, hatchet-stack 0.10.5,
   cloudnative-pg 0.27.1, ferretdb 2.7.0) — full matrix in the
-  [README Prerequisites](../README.md#prerequisites).
+  [README Prerequisites](../../README.md#prerequisites).
 - The imported source lives in the gitignored `temp-artifacts/`; the committed,
   adapted versions are in `components/registry/`.
 
@@ -77,7 +77,7 @@ PGPASSWORD=$(grep POSTGRES_ADMIN_PASSWORD components/components.secrets.env | cu
 # Grafana datasources should list VictoriaMetrics / VictoriaLogs / VictoriaTraces.
 ```
 On the cluster host (no bridged NIC) add the LB route once, as in
-[runbook-local.md](runbook-local.md) §"Host-on-the-same-box caveat".
+[deploy-local.md](deploy-local.md) §"Host-on-the-same-box caveat".
 
 ## 4. Remove
 ```bash
@@ -105,4 +105,4 @@ On the cluster host (no bridged NIC) add the LB route once, as in
   (`kubectl -n external-dns get deploy external-dns -o yaml | grep source`) and that the
   Service got an EXTERNAL-IP from LB-IPAM.
 - **Heavy / pods Pending** — single-host pressure; disable a category or trim replicas.
-- General DNS/Gateway/Cilium issues: [troubleshooting.md](troubleshooting.md).
+- General DNS/Gateway/Cilium issues: [troubleshooting.md](../troubleshooting.md).

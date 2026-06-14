@@ -6,22 +6,22 @@ Run the homelab cluster inside **WSL2** and reach its assigned hostnames
 ## 0. Prerequisites
 - **WSL2** with a Linux distro (Ubuntu 24.04 tested) and **Docker in WSL** (Docker
   Desktop WSL integration or native `docker`).
-- In WSL — same CLIs/versions as [runbook-local.md](runbook-local.md):
+- In WSL — same CLIs/versions as [deploy-local.md](deploy-local.md):
   `docker 29.4.1 · k3d v5.8.3 · kubectl v1.31.0 · helm v3.18.2 · jq 1.7 · envsubst (gettext 0.21)`
   plus **`socat`** (`sudo apt-get install -y socat`) for the port forwarders.
 - On **Windows**: a browser, Administrator access (to edit `hosts` + trust the CA).
-- Full version matrix: [README Prerequisites](../README.md#prerequisites).
+- Full version matrix: [README Prerequisites](../../README.md#prerequisites).
 
 ## 1. Bring up the cluster (in WSL)
 
-Follow [runbook-local.md](runbook-local.md) **inside your WSL distro** — `./install.sh`,
+Follow [deploy-local.md](deploy-local.md) **inside your WSL distro** — `./install.sh`,
 then `./components.sh deploy` for the add-ons. Everything there applies unchanged.
 
 Two WSL specifics:
 - Use Docker running in WSL (Docker Desktop's WSL integration, or native `docker` in
   the distro). k3d nodes are containers on a docker bridge inside WSL.
 - **The WSL host needs a route to the LB pool** (the same "host caveat" from
-  runbook-local — WSL has no bridged LAN NIC). Add it once per WSL session:
+  deploy-local.md — WSL has no bridged LAN NIC). Add it once per WSL session:
   ```bash
   CLUSTER=$(. ./.env >/dev/null 2>&1; echo $LOCAL_HOST)
   BR=br-$(docker network ls --filter name=k3d-$CLUSTER --format '{{.ID}}')
@@ -113,7 +113,7 @@ mongosh mongodb://ferretdb.home.lan:27017
   and can even reach the WSL IP directly; `bind=0.0.0.0` keeps both modes working.
 - This overrides DNS on Windows (tests Gateway routing + TLS, not the cluster's
   CoreDNS). The zero-config alternative is the Tailscale subnet route
-  ([runbook-tailscale.md](runbook-tailscale.md)); for the Tailscale+SSH variant from
-  another machine see [misc/templ-tailscale-local-access.md](misc/templ-tailscale-local-access.md).
+  ([tailscale-access.md](tailscale-access.md)); for the Tailscale+SSH variant from
+  another machine see [misc/templ-tailscale-local-access.md](../misc/templ-tailscale-local-access.md).
 - If a forwarder dies when the cluster is recreated, the LB IPs are pinned
   (`172.28.210.53/.80`) but per-service IPs may shift — re-check with the `get svc` line.

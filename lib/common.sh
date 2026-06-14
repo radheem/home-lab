@@ -45,7 +45,7 @@ export_kubeconfig() {
   # k3d sets the kubeconfig server to the kubeAPI host (API_SERVER_FQDN), which may
   # not resolve on this machine. Point local kubectl at loopback (127.0.0.1 is a
   # TLS SAN in k3d-config). Remote access (Tailscale/LAN) rewrites this back to the
-  # FQDN — see docs/runbook-tailscale.md.
+  # FQDN — see docs/runbooks/tailscale-access.md.
   local port="${API_SERVER_PORT:-16443}"
   sed -i -E "s#(server: https://)[^:/]+(:${port})#\1127.0.0.1\2#" "${KUBECONFIG_FILE}"
   export KUBECONFIG="${KUBECONFIG_FILE}"

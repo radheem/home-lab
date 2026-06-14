@@ -4,16 +4,16 @@ Make the cluster's LoadBalancer IPs (`LB_CIDR`, incl. the DNS `172.28.210.53` an
 Gateway `172.28.210.80`) reachable from anywhere on your tailnet, by running a
 **subnet router** that advertises `LB_CIDR` to Headscale.
 
-> Partly exercised in [Experiment 02](../experiments/02-with-tailscale/);
-> remote approval designed in [Experiment 03](../experiments/03-remote-route-approval/).
+> Partly exercised in [Experiment 02](../../experiments/02-with-tailscale/);
+> remote approval designed in [Experiment 03](../../experiments/03-remote-route-approval/).
 
 ## 0. Prerequisites
-- The cluster is up and verified per [runbook-local.md](runbook-local.md).
+- The cluster is up and verified per [deploy-local.md](deploy-local.md).
 - A reachable **Headscale** control server + a node **pre-auth key** (`TS_AUTHKEY`).
   Remote route approval (step 3) additionally needs a Headscale **API key**.
 - Tools — tested versions: `kubectl v1.31.0 · helm v3.18.2 · jq 1.7`, plus the
   `tailscale` CLI on any client used to verify. Base tool matrix:
-  [README Prerequisites](../README.md#prerequisites).
+  [README Prerequisites](../../README.md#prerequisites).
 - A second tailnet machine to verify remote access (`dig`/`curl`).
 
 ## 1. Configure `.env` (Tailscale section)
@@ -66,7 +66,7 @@ headscale routes enable -r <id>
 
 **C. Zero-touch forever:** configure `autoApprovers` + a tagged auth key once, then
 approval is automatic on every deploy. See
-[Experiment 03 README](../experiments/03-remote-route-approval/README.md).
+[Experiment 03 README](../../experiments/03-remote-route-approval/README.md).
 
 Confirm approved (the CIDR appears in `PrimaryRoutes`):
 ```bash
@@ -102,4 +102,4 @@ bash tailscale/manage.sh uninstall --cluster-name "$CLUSTER_NAME"
 # and remove/expire the Headscale node + API key if no longer needed
 ```
 
-Problems? See [troubleshooting.md](troubleshooting.md).
+Problems? See [troubleshooting.md](../troubleshooting.md).

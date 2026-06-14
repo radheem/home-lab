@@ -103,11 +103,11 @@ with a `*.home.lan` hostname. Nothing else — DNS + HTTPS are automatic.
 
 ## Runbooks & experiments
 - How it all fits together (diagrams): [docs/architecture.md](docs/architecture.md)
-- Deploy + verify locally: [docs/runbook-local.md](docs/runbook-local.md)
-- Deploy + verify over Tailscale: [docs/runbook-tailscale.md](docs/runbook-tailscale.md)
-- WSL cluster + browse from Windows: [docs/runbook-wsl-windows.md](docs/runbook-wsl-windows.md)
-- Add-on components (monitoring/messaging/workflow/db): [docs/runbook-components.md](docs/runbook-components.md) — selectable via [components/](components/)
-- Add components to a running cluster (day-2): [docs/runbook-add-components.md](docs/runbook-add-components.md)
+- Deploy + verify locally: [docs/runbooks/deploy-local.md](docs/runbooks/deploy-local.md)
+- Deploy + verify over Tailscale: [docs/runbooks/tailscale-access.md](docs/runbooks/tailscale-access.md)
+- WSL cluster + browse from Windows: [docs/runbooks/wsl-windows.md](docs/runbooks/wsl-windows.md)
+- Add-on components (monitoring/messaging/workflow/db): [docs/runbooks/deploy-components.md](docs/runbooks/deploy-components.md) — selectable via [components/](components/)
+- Add components to a running cluster (day-2): [docs/runbooks/add-components.md](docs/runbooks/add-components.md)
 - Validation history & gotchas: [experiments/](experiments/) (01 local ✅, 02 tailscale ⏸, 03 remote approval 📐)
 
 ## TLS

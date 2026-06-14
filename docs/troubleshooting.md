@@ -42,7 +42,7 @@ kubectl get pods -A
 - `API_SERVER_FQDN` is only for **remote** API access (Tailscale/LAN), where that name
   is pointed at the host. It is unrelated to resolving **service** hostnames
   (`*.home.lan`) — for that see "Make it usable LAN-wide" in
-  [runbook-local.md](runbook-local.md) (router conditional-forward or per-device DNS to
+  [deploy-local.md](runbooks/deploy-local.md) (router conditional-forward or per-device DNS to
   the authoritative server `DNS_LB_IP`), or add `/etc/hosts` entries.
 
 ## DNS resolution
