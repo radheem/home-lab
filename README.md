@@ -50,13 +50,17 @@ cluster one forwards `home.lan` to the authoritative LB IP so pods resolve it to
 
 > **Which `yq`?** `components.sh` uses jq syntax, so it needs the **Python jq-wrapper
 > `yq`** ([kislyuk/yq](https://github.com/kislyuk/yq)) — **not** mikefarah's Go `yq`.
-> Install it (also needs `jq`):
+> Install it (also needs `jq`). On Debian/Ubuntu the `yq` apt package *is* the
+> jq-wrapper (and avoids the PEP 668 "externally-managed" pip error on 24.04):
 > ```bash
-> pipx install yq        # or: pip install --user yq   (PyPI package "yq")
+> sudo apt-get install -y yq jq                     # Debian/Ubuntu
+> # or via pipx:  sudo apt-get install -y pipx jq && pipx install yq && pipx ensurepath
 > ```
 > Verify: `yq --version` shows `yq <3.x>` and `yq --help` mentions *jq*. If instead it
-> prints a `mikefarah` GitHub URL / `v4.x`, the selector fails with
-> `lexer: invalid input text "...cii_upcase..."` — swap to the jq-wrapper.
+> prints a `mikefarah` GitHub URL / `v4.x`, that one is winning on `PATH` (e.g.
+> `/usr/local/bin/yq` or a snap) and the selector fails with
+> `lexer: invalid input text "...cii_upcase..."` — remove/rename it (`which -a yq`) so
+> the jq-wrapper resolves.
 
 OS tested: **Ubuntu 24.04 LTS** (kernel 6.17). Rough sizing: 2 CPU / 4 GB for the
 core platform; ~4 CPU / 8 GB if you enable the full component stack.
