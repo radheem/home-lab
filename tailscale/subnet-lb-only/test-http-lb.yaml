@@ -1,0 +1,37 @@
+# This manifest deploys a simple Nginx web server of type LoadBalancer.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: http-test-lb
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: http-test-lb
+  template:
+    metadata:
+      labels:
+        app: http-test-lb
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.23
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-test-lb-svc
+  namespace: default
+spec:
+  # This service will request an IP from the MetalLB pool.
+  type: LoadBalancer
+  selector:
+    app: http-test-lb
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 80

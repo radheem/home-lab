@@ -1,0 +1,92 @@
+# This manifest deploys a Tailscale subnet router that ONLY advertises the
+# specific MetalLB LoadBalancer IP range discovered from your cluster's configuration.
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tailscale-lb
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: subnet-router-lb
+  namespace: tailscale-lb
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: subnet-router-lb-role
+  namespace: tailscale-lb
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "create", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: subnet-router-lb-rolebinding
+  namespace: tailscale-lb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: subnet-router-lb-role
+subjects:
+  - kind: ServiceAccount
+    name: subnet-router-lb
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tailscale-subnet-router-lb
+  namespace: tailscale-lb
+  labels:
+    app: tailscale-subnet-router-lb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tailscale-subnet-router-lb
+  template:
+    metadata:
+      labels:
+        app: tailscale-subnet-router-lb
+    spec:
+      serviceAccountName: subnet-router-lb
+      containers:
+        - name: tailscale
+          image: tailscale/tailscale:latest
+          env:
+            - name: TS_AUTHKEY # Corrected Name
+              valueFrom:
+                secretKeyRef:
+                  name: tailscale-auth-lb
+                  key: authkey
+            - name: TS_LOGIN_SERVER
+              valueFrom:
+                secretKeyRef:
+                  name: tailscale-auth-lb
+                  key: loginServer
+            - name: TS_ROUTES
+              value: $TS_ROUTES
+            - name: TS_KUBE_SECRET
+              value: tailscale-state-lb
+            - name: TS_HOSTNAME
+              value: $TS_HOSTNAME
+            - name: TS_USERSPACE
+              value: "false"
+          securityContext:
+            privileged: true
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -e
+              tailscaled --state=kube:$(TS_KUBE_SECRET) --socket=/tmp/tailscaled.sock &
+              tailscale --socket=/tmp/tailscaled.sock up --hostname=$(TS_HOSTNAME) --advertise-routes=$(TS_ROUTES) --login-server=$(TS_LOGIN_SERVER) --authkey=$(TS_AUTHKEY)
+              wait $!
+          volumeMounts:
+            - mountPath: /var/lib/tailscale
+              name: tailscale-state
+      volumes:
+        - name: tailscale-state
+          emptyDir: {}
