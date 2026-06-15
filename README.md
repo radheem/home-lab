@@ -84,7 +84,8 @@ core platform; ~4 CPU / 8 GB if you enable the full component stack.
 
 ```bash
 cp .env.example .env        # edit IPs/TLD/storage to match your network
-./install.sh                # one-click (add --with-router for Tailscale, --verbose to debug)
+./install.sh                # one-click (--with-registry for an in-cluster image registry,
+                            # --with-router for Tailscale, --verbose to debug)
 ```
 
 Then point your LAN at the DNS (one of):
@@ -112,7 +113,7 @@ with a `*.home.lan` hostname. Nothing else — DNS + HTTPS are automatic.
 | `install.sh` / `uninstall.sh` | One-click lifecycle |
 | `lib/common.sh` | Logging, env load, render+apply helpers |
 | `config/` | k3d config, Cilium + cluster-CoreDNS Helm values (templated) |
-| `manifests/00..50` | Kustomize overlays applied in order |
+| `manifests/00..60` | Kustomize overlays applied in order (60 = optional image registry) |
 | `tailscale/` | Optional subnet router + `approve-route.sh` (`--with-router`) |
 | `docs/` | Runbooks, troubleshooting, cert-manager notes |
 | `experiments/` | End-to-end validation runs (local, tailscale, remote approval) |
@@ -124,6 +125,8 @@ with a `*.home.lan` hostname. Nothing else — DNS + HTTPS are automatic.
 - WSL cluster + browse from Windows: [docs/runbooks/wsl-windows.md](docs/runbooks/wsl-windows.md)
 - Add-on components (monitoring/messaging/workflow/db): [docs/runbooks/deploy-components.md](docs/runbooks/deploy-components.md) — selectable via [components/](components/)
 - Add components to a running cluster (day-2): [docs/runbooks/add-components.md](docs/runbooks/add-components.md)
+- In-cluster image registry (`--with-registry`): [docs/runbooks/registry.md](docs/runbooks/registry.md) — `docker push registry.home.lan/...`, nodes pull automatically
+- Pull from a private external registry (Docker Hub): [docs/runbooks/private-registry.md](docs/runbooks/private-registry.md)
 - Validation history & gotchas: [experiments/](experiments/) (01 local ✅, 02 tailscale ⏸, 03 remote approval 📐)
 
 ## TLS

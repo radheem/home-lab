@@ -83,6 +83,8 @@ nav:
       - Deploy locally: runbooks/deploy-local.md
       - Deploy components: runbooks/deploy-components.md
       - Add components (day-2): runbooks/add-components.md
+      - Image registry: runbooks/registry.md
+      - Private registry (Docker Hub): runbooks/private-registry.md
       - Tailscale access: runbooks/tailscale-access.md
       - WSL → browse from Windows: runbooks/wsl-windows.md
   - Reference:
