@@ -1,0 +1,29 @@
+# Proves the in-cluster registry end to end: this image was PUSHED to
+# ${REGISTRY_HOST} (see test/registry/README.md), and the k3s nodes pull it back
+# by that exact name via the containerd mirror (config/k3d-registries.yaml).
+# If this pod reaches Running, the registry push + node pull both work.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-reg
+  namespace: registry-test
+  labels:
+    app: echo-reg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: echo-reg
+  template:
+    metadata:
+      labels:
+        app: echo-reg
+    spec:
+      containers:
+        - name: echo
+          image: ${REGISTRY_HOST}/echo-test:1.0   # <- pulled from the in-cluster registry
+          env:
+            - name: PORT
+              value: "3000"
+          ports:
+            - containerPort: 3000

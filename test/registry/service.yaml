@@ -1,0 +1,16 @@
+# ClusterIP — the shared Gateway is the entrypoint, so the backing Service does
+# not need its own external IP.
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-reg
+  namespace: registry-test
+spec:
+  type: ClusterIP
+  selector:
+    app: echo-reg
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 3000

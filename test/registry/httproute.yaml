@@ -1,0 +1,21 @@
+# Zero-touch hook: attach to the SHARED gateway and declare a *.${LOCAL_TLD}
+# hostname. ExternalDNS publishes echo-reg.${LOCAL_TLD} -> Gateway LB IP.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: echo-reg
+  namespace: registry-test
+spec:
+  parentRefs:
+    - name: shared-gateway
+      namespace: gateway-system
+  hostnames:
+    - "echo-reg.${LOCAL_TLD}"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: echo-reg
+          port: 8080
