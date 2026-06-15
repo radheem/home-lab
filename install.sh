@@ -16,14 +16,16 @@ source "${ROOT_DIR}/lib/common.sh"
 
 ENV_FILE="${ROOT_DIR}/.env"
 WITH_ROUTER=false
+WITH_REGISTRY=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --env-file)   ENV_FILE="$2"; shift 2 ;;
     --with-router) WITH_ROUTER=true; shift ;;
+    --with-registry) WITH_REGISTRY=true; shift ;;
     --verbose|-v) set -x; shift ;;
     -h|--help)
-      echo "Usage: $0 [--env-file FILE] [--with-router] [--verbose]"; exit 0 ;;
+      echo "Usage: $0 [--env-file FILE] [--with-router] [--with-registry] [--verbose]"; exit 0 ;;
     *) die "Unknown option: $1" ;;
   esac
 done
@@ -40,6 +42,8 @@ if k3d cluster get "${CLUSTER_NAME}" >/dev/null 2>&1; then
 fi
 mkdir -p "${CLUSTER_VOLUME_STORE}"
 render "${ROOT_DIR}/config/k3d-config.yaml" > "${ROOT_DIR}/.render-k3d-config.yaml"
+# Wire the nodes' containerd to the in-cluster registry (mirror -> pinned LB IP).
+[ "$WITH_REGISTRY" = "true" ] && render "${ROOT_DIR}/config/k3d-registries.yaml" >> "${ROOT_DIR}/.render-k3d-config.yaml"
 k3d cluster create "${CLUSTER_NAME}" --config "${ROOT_DIR}/.render-k3d-config.yaml"
 rm -f "${ROOT_DIR}/.render-k3d-config.yaml"
 export_kubeconfig
@@ -132,7 +136,16 @@ step "Deploying demo app (whoami)"
 apply_kustomize "${ROOT_DIR}/manifests/50-examples"
 wait_rollout demo deployment/whoami 120s
 
-# --- 13. Optional Tailscale subnet router ------------------------------------
+# --- 13. Optional in-cluster image registry ----------------------------------
+if [ "$WITH_REGISTRY" = "true" ]; then
+  step "Deploying in-cluster image registry (${REGISTRY_HOST:-registry.${LOCAL_TLD}})"
+  ensure_ns registry
+  apply_kustomize "${ROOT_DIR}/manifests/60-registry"
+  kubectl -n registry wait --for=condition=Ready certificate/registry-tls --timeout=120s
+  wait_rollout registry deployment/registry 180s
+fi
+
+# --- 14. Optional Tailscale subnet router ------------------------------------
 if [ "$WITH_ROUTER" = "true" ]; then
   step "Installing Tailscale subnet router"
   [ -n "${TS_AUTHKEY:-}" ] || die "--with-router needs TS_AUTHKEY in .env"
@@ -167,3 +180,16 @@ TLS: trust the CA on your devices —
   kubectl -n cert-manager get secret home-lab-ca-tls -o jsonpath='{.data.tls\\.crt}' | base64 -d > home-lab-ca.crt
 
 EOF
+
+if [ "$WITH_REGISTRY" = "true" ]; then
+cat <<EOF
+$(_c '1;32' 'Image registry is up') at https://${REGISTRY_HOST} (${REGISTRY_LB_IP}).
+
+  PUSH (from any LAN device, after trusting home-lab-ca.crt above):
+    docker tag myapp:dev ${REGISTRY_HOST}/myapp:dev
+    docker push ${REGISTRY_HOST}/myapp:dev
+  USE in a manifest:  image: ${REGISTRY_HOST}/myapp:dev   # nodes pull it automatically
+  See docs/runbooks/registry.md (incl. enabling auth).
+
+EOF
+fi

@@ -1,0 +1,18 @@
+# TLS cert for the in-cluster registry, issued by the internal CA (home-lab-ca).
+# Both SANs are present so the same cert serves LAN clients (by hostname) and the
+# k3s nodes' containerd (which reaches the registry by its pinned LB IP).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: registry-tls
+  namespace: registry
+spec:
+  secretName: registry-tls
+  duration: 8760h        # 1y
+  dnsNames:
+    - "${REGISTRY_HOST}"
+  ipAddresses:
+    - "${REGISTRY_LB_IP}"
+  issuerRef:
+    name: home-lab-ca
+    kind: ClusterIssuer

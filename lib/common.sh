@@ -11,7 +11,7 @@ step()     { echo; echo "$(_c '1;36' "=== $* ===")"; }
 
 # Only the variables we intentionally template into manifests/configs. Keeping
 # this list explicit prevents envsubst from eating unrelated `$` text.
-ENVSUBST_VARS='${LOCAL_HOST} ${CLUSTER_NAME} ${API_SERVER_FQDN} ${API_SERVER_PORT} ${K3S_VERSION} ${SERVER_COUNT} ${AGENT_COUNT} ${CLUSTER_SUBNET} ${CLUSTER_VOLUME_STORE} ${LB_CIDR} ${DNS_LB_IP} ${GATEWAY_LB_IP} ${LOCAL_TLD} ${UPSTREAM_DNS}'
+ENVSUBST_VARS='${LOCAL_HOST} ${CLUSTER_NAME} ${API_SERVER_FQDN} ${API_SERVER_PORT} ${K3S_VERSION} ${SERVER_COUNT} ${AGENT_COUNT} ${CLUSTER_SUBNET} ${CLUSTER_VOLUME_STORE} ${LB_CIDR} ${DNS_LB_IP} ${GATEWAY_LB_IP} ${REGISTRY_LB_IP} ${REGISTRY_HOST} ${LOCAL_TLD} ${UPSTREAM_DNS}'
 
 # --- Environment --------------------------------------------------------------
 load_env() {

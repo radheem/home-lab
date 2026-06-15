@@ -1,0 +1,18 @@
+# Appended to the rendered k3d config by install.sh ONLY when --with-registry.
+# Wires the k3s nodes' containerd to pull from the in-cluster registry:
+#   - mirror: rewrite `registry.home.lan/...` pulls to the pinned LB IP, so nodes
+#     never need to resolve the home.lan zone (the image name stays identical).
+#   - insecure_skip_verify: the registry's TLS cert is issued by the internal CA,
+#     which isn't on the nodes at cluster-create time. Traffic is still encrypted;
+#     to switch to strict verification, mount the CA on the nodes and drop this
+#     (the cert carries the LB IP as a SAN). See docs/runbooks/registry.md.
+registries:
+  config: |
+    mirrors:
+      "${REGISTRY_HOST}":
+        endpoint:
+          - "https://${REGISTRY_LB_IP}"
+    configs:
+      "${REGISTRY_LB_IP}":
+        tls:
+          insecure_skip_verify: true
